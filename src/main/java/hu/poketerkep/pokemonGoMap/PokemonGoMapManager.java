@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -53,12 +54,18 @@ public class PokemonGoMapManager implements SmartLifecycle {
         logger.info("Stopping PokemonGo-Map...");
         if (process != null) {
             process.destroy();
+            try {
+                process.waitFor(10, TimeUnit.SECONDS);
+                process = null;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     @Override
     public boolean isRunning() {
-        return process != null && process.isAlive();
+        return process != null;
     }
 
     @Override
@@ -69,6 +76,7 @@ public class PokemonGoMapManager implements SmartLifecycle {
     @Override
     public void stop(Runnable callback) {
         this.stop();
+        callback.run();
     }
 
 
