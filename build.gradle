@@ -1,0 +1,33 @@
+buildscript {
+	ext {
+		springBootVersion = '1.3.6.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'spring-boot'
+
+jar {
+	baseName = 'poketerkep-client'
+	version = '0.1'
+}
+//noinspection GroovyUnusedAssignment
+sourceCompatibility = 1.8
+//noinspection GroovyUnusedAssignment
+targetCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter-actuator')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+}
