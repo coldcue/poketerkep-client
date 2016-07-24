@@ -29,5 +29,7 @@ repositories {
 
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter-actuator')
+	compile("com.fasterxml.jackson.core:jackson-databind")
+	compile("org.springframework:spring-web")
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
