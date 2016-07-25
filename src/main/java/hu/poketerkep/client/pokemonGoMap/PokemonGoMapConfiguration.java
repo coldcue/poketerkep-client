@@ -1,4 +1,4 @@
-package hu.poketerkep.pokemonGoMap;
+package hu.poketerkep.client.pokemonGoMap;
 
 /**
  * This configuration stores the values for the PokemonGoMap

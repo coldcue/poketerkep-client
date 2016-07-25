@@ -1,4 +1,4 @@
-package hu.poketerkep.json;
+package hu.poketerkep.client.json;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

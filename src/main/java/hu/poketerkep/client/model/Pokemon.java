@@ -1,4 +1,4 @@
-package hu.poketerkep.model;
+package hu.poketerkep.client.model;
 
 @SuppressWarnings("unused")
 public class Pokemon {
