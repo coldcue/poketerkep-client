@@ -1,6 +1,6 @@
-package hu.poketerkep;
+package hu.poketerkep.client;
 
-import hu.poketerkep.pokemonGoMap.PokemonGoMapManager;
+import hu.poketerkep.client.pokemonGoMap.PokemonGoMapManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;

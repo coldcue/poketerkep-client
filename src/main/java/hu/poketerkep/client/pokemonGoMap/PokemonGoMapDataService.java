@@ -1,6 +1,6 @@
-package hu.poketerkep.pokemonGoMap;
+package hu.poketerkep.client.pokemonGoMap;
 
-import hu.poketerkep.json.RawDataJsonDto;
+import hu.poketerkep.client.json.RawDataJsonDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 

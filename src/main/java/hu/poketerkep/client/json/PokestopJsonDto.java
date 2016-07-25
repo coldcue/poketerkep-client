@@ -1,4 +1,4 @@
-package hu.poketerkep.json;
+package hu.poketerkep.client.json;
 
 @SuppressWarnings("unused")
 public class PokestopJsonDto {
