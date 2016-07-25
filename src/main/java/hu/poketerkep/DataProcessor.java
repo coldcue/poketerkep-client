@@ -4,7 +4,7 @@ import hu.poketerkep.json.RawDataJsonDto;
 import hu.poketerkep.model.Pokemon;
 import hu.poketerkep.pokemonGoMap.PokemonGoMapDataService;
 import hu.poketerkep.service.DatabaseService;
-import hu.poketerkep.support.PokemonMapper;
+import hu.poketerkep.mapper.PokemonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,20 +18,24 @@ import java.util.stream.Collectors;
  */
 @Component
 public class DataProcessor {
+    private final PokemonGoMapDataService dataService;
+    private final DatabaseService databaseService;
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     @Autowired
-    private PokemonGoMapDataService dataService;
-
-    @Autowired
-    private DatabaseService databaseService;
+    public DataProcessor(PokemonGoMapDataService dataService, DatabaseService databaseService) {
+        this.dataService = dataService;
+        this.databaseService = databaseService;
+    }
 
     @Scheduled(fixedDelay = 15000, initialDelay = 10000)
     public void processData() {
         logger.info("Fetching data...");
         RawDataJsonDto rawData = dataService.getRawData();
 
-        logger.info("Data arrived: [pokemons: "+rawData.getPokemons().size()+"]");
+        logger.info("Data arrived: [pokemons: " + rawData.getPokemons().size() +
+                ", pokestops: " + rawData.getPokestops().size() +
+                ", gyms: " + rawData.getGyms().size() + "]");
 
         logger.info("Processing data...");
         List<Pokemon> pokemons = rawData.getPokemons().parallelStream().map(PokemonMapper::mapFromJsonDto).collect(Collectors.toList());

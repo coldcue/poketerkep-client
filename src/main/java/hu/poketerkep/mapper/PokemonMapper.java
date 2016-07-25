@@ -1,4 +1,4 @@
-package hu.poketerkep.support;
+package hu.poketerkep.mapper;
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import hu.poketerkep.json.PokemonJsonDto;

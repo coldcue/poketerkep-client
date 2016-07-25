@@ -15,6 +15,8 @@ public class RawDataJsonDto {
     private List<PokemonJsonDto> pokemons;
     @JsonProperty(required = true)
     private List<PokestopJsonDto> pokestops;
+    @JsonProperty(required = true)
+    private List<ScannedJsonDto> scanned;
 
     public List<GymJsonDto> getGyms() {
         return gyms;
@@ -38,5 +40,13 @@ public class RawDataJsonDto {
 
     public void setPokestops(List<PokestopJsonDto> pokestops) {
         this.pokestops = pokestops;
+    }
+
+    public List<ScannedJsonDto> getScanned() {
+        return scanned;
+    }
+
+    public void setScanned(List<ScannedJsonDto> scanned) {
+        this.scanned = scanned;
     }
 }

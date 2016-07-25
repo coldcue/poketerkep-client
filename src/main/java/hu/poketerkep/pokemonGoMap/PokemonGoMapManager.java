@@ -19,10 +19,14 @@ public class PokemonGoMapManager implements SmartLifecycle {
     private static final String PYTHON = "python";
     private static final File LOG = new File("pokem.log");
     private final Logger logger = Logger.getLogger(this.getClass().getName());
-    @Autowired
-    private PokemonGoMapConfiguration conf;
+    private final PokemonGoMapConfiguration conf;
 
     private Process process;
+
+    @Autowired
+    public PokemonGoMapManager(PokemonGoMapConfiguration conf) {
+        this.conf = conf;
+    }
 
     @Override
     public void start() {
