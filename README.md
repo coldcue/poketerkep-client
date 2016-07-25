@@ -10,3 +10,11 @@
 
 ### Arguments
 ```--ec2-instanceid={instance-id}``` 
+
+### EC2 Tags
+- ClientID
+- Location
+- Name
+- Password
+- Steps
+- Username
