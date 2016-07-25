@@ -1,4 +1,4 @@
-package hu.poketerkep.pokemonGoMap;
+package hu.poketerkep.client.pokemonGoMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;

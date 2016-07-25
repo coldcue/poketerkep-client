@@ -1,8 +1,8 @@
-package hu.poketerkep.service;
+package hu.poketerkep.client.service;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
-import hu.poketerkep.model.Pokemon;
-import hu.poketerkep.mapper.PokemonMapper;
+import hu.poketerkep.client.mapper.PokemonMapper;
+import hu.poketerkep.client.model.Pokemon;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +25,7 @@ public class DatabaseService {
      * @param pokemons the list of pokemons
      */
     public void putPokemons(List<Pokemon> pokemons) {
-        pokemons.parallelStream().map(PokemonMapper::mapToDynamoDb).forEach(valueMap -> dynamoDBAsync.putItemAsync("pokemons", valueMap));
+        pokemons.parallelStream().map(PokemonMapper::mapToDynamoDb).forEach(valueMap -> dynamoDBAsync.putItem("pokemons", valueMap));
     }
 
 }

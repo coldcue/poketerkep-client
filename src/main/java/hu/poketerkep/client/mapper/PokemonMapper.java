@@ -1,8 +1,8 @@
-package hu.poketerkep.mapper;
+package hu.poketerkep.client.mapper;
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import hu.poketerkep.json.PokemonJsonDto;
-import hu.poketerkep.model.Pokemon;
+import hu.poketerkep.client.json.PokemonJsonDto;
+import hu.poketerkep.client.model.Pokemon;
 
 import java.util.HashMap;
 import java.util.Map;
