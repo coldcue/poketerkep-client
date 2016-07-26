@@ -26,12 +26,16 @@ repositories {
 	mavenCentral()
 }
 
+springBoot {
+	executable = true
+}
 
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter-actuator')
 	compile('com.fasterxml.jackson.core:jackson-databind')
 	compile('org.springframework:spring-web')
 	compile('com.amazonaws:aws-java-sdk:1.11.20')
+	compile('commons-codec:commons-codec:1.10')
 
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }

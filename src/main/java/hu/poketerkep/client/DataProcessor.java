@@ -1,10 +1,10 @@
 package hu.poketerkep.client;
 
 import hu.poketerkep.client.json.RawDataJsonDto;
+import hu.poketerkep.client.mapper.PokemonMapper;
 import hu.poketerkep.client.model.Pokemon;
 import hu.poketerkep.client.pokemonGoMap.PokemonGoMapDataService;
 import hu.poketerkep.client.service.DatabaseService;
-import hu.poketerkep.client.mapper.PokemonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ public class DataProcessor {
         this.databaseService = databaseService;
     }
 
-    @Scheduled(fixedDelay = 15000, initialDelay = 10000)
+    @Scheduled(fixedDelay = 60 * 1000, initialDelay = 60 * 1000)
     public void processData() {
         logger.info("Fetching data...");
         RawDataJsonDto rawData = dataService.getRawData();
