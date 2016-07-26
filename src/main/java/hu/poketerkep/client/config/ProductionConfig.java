@@ -7,8 +7,8 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
-import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.util.EC2MetadataUtils;
+import hu.poketerkep.client.config.support.InstanceConfiguration;
 import hu.poketerkep.client.pokemonGoMap.PokemonGoMapConfiguration;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Configuration
@@ -50,21 +52,22 @@ public class ProductionConfig {
     }
 
     @Bean
+    InstanceConfiguration instanceConfiguration() throws Exception {
+        return new InstanceConfiguration(ec2Instance());
+    }
+
+    @Bean
     PokemonGoMapConfiguration pokemonGoMapConfiguration() throws Exception {
         logger.info("Getting PokemonGoMap Configuration...");
-        List<Tag> tags = ec2Instance().getTags();
-        Map<String, String> properties = new HashMap<>();
 
-        for (Tag tag : tags) {
-            properties.put(tag.getKey(), tag.getValue());
-        }
+        InstanceConfiguration conf = instanceConfiguration();
 
-        String username = "poketk" + properties.get("ClientId");
+        String username = "poketk" + conf.getTags().get("ClientId");
         String password = DigestUtils.md5Hex(username).substring(0, 8);
-        String location = properties.get("Location");
-        String steps = properties.get("Steps");
+        String location = conf.getTags().get("Location");
+        String steps = conf.getTags().get("Steps");
 
-        logger.info("Username:"+username+" Password:"+password+" Location:"+location+" Steps:"+steps);
+        logger.info("Username:" + username + " Password:" + password + " Location:" + location + " Steps:" + steps);
 
         return new PokemonGoMapConfiguration(username,
                 password,
