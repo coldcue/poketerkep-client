@@ -1,17 +1,27 @@
 package hu.poketerkep.client.service;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import hu.poketerkep.client.mapper.PokemonMapper;
 import hu.poketerkep.client.model.Pokemon;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service
 public class DatabaseService {
 
+    private static final String POKEMONS_TABLE = "pokemons";
+    private static final String POKEMON_TABLE_KEY = "encounterId";
     private final AmazonDynamoDBAsync dynamoDBAsync;
 
     @Autowired
@@ -25,7 +35,39 @@ public class DatabaseService {
      * @param pokemons the list of pokemons
      */
     public void putPokemons(List<Pokemon> pokemons) {
-        pokemons.parallelStream().map(PokemonMapper::mapToDynamoDb).forEach(valueMap -> dynamoDBAsync.putItem("pokemons", valueMap));
+        pokemons.parallelStream().map(PokemonMapper::mapToDynamoDb).forEach(valueMap -> dynamoDBAsync.putItem(POKEMONS_TABLE, valueMap));
+    }
+
+    public List<String> getOldPokemonEncounterIds() {
+        // http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ScanJavaDocumentAPI.html
+        long now = Instant.now().toEpochMilli();
+
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":now", new AttributeValue().withN(Long.toString(now)));
+
+        ScanRequest scanRequest = new ScanRequest()
+                .withTableName(POKEMONS_TABLE)
+                .withFilterExpression("disappearTime < :now")
+                .withExpressionAttributeValues(expressionAttributeValues)
+                .withProjectionExpression("encounterId");
+
+        ScanResult result = dynamoDBAsync.scan(scanRequest);
+
+        return result.getItems().parallelStream()
+                .map(valueMap -> valueMap.get("encounterId"))
+                .map(AttributeValue::getS)
+                .collect(Collectors.toList());
+    }
+
+    public void deletePokemonByEncounterId(String encounterId) {
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(POKEMON_TABLE_KEY, new AttributeValue().withS(encounterId));
+
+        DeleteItemRequest deleteItemRequest = new DeleteItemRequest()
+                .withTableName(POKEMONS_TABLE)
+                .withKey(key);
+
+        dynamoDBAsync.deleteItem(deleteItemRequest);
     }
 
 }
