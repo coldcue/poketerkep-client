@@ -14,7 +14,7 @@ echo "Copying poketerkep-client.jar"
 cp -vf build/libs/poketerkep-client-0.1.jar revision/poketerkep-client.jar
 
 echo "Copying codedeploy"
-cp -r codedeploy/ revision/
+cp -r codedeploy/* revision/
 
 echo "Zipping revision"
 cd revision
