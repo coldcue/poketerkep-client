@@ -1,8 +1,8 @@
 #!/bin/sh
 
 echo "Cleaning..."
-rm -r revision
-rm revision.zip
+rm -fr revision
+rm -f revision.zip
 
 echo "Creating revision folder"
 mkdir -v revision
