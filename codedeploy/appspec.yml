@@ -8,11 +8,10 @@ files:
 hooks:
   BeforeInstall:
     - location: Scripts/StopService.sh
-      timeout: 10
+      timeout: 3
     - location: Scripts/ClearDirectory.sh
     - location: Scripts/RemoveService.sh
     - location: Scripts/InstallPackages.sh
   ApplicationStart:
     - location: Scripts/InstallService.sh
     - location: Scripts/StartService.sh
-      timeout: 10
