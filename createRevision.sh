@@ -16,8 +16,8 @@ cp -vf build/libs/poketerkep-client-0.1.jar revision/poketerkep-client.jar
 echo "Copying codedeploy"
 cp -r codedeploy/ revision/
 
-#echo "Zipping revision"
-#cd revision
-#zip -r revision.zip *
-#mv revision.zip ../
-#cd ..
+echo "Zipping revision"
+cd revision
+zip -r revision.zip *
+mv revision.zip ../
+cd ..
