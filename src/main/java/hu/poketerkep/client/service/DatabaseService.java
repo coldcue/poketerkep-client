@@ -38,7 +38,7 @@ public class DatabaseService {
         pokemons.parallelStream().map(PokemonMapper::mapToDynamoDb).forEach(valueMap -> dynamoDBAsync.putItem(POKEMONS_TABLE, valueMap));
     }
 
-    public List<String> getOldPokemonEncounterIds() {
+    public List<Pokemon> getOldPokemons() {
         // http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ScanJavaDocumentAPI.html
         long now = Instant.now().toEpochMilli();
 
@@ -49,23 +49,28 @@ public class DatabaseService {
                 .withTableName(POKEMONS_TABLE)
                 .withFilterExpression("disappearTime < :now")
                 .withExpressionAttributeValues(expressionAttributeValues)
-                .withProjectionExpression("encounterId");
+                .withProjectionExpression("encounterId, disappearTime");
 
         ScanResult result = dynamoDBAsync.scan(scanRequest);
 
         return result.getItems().parallelStream()
-                .map(valueMap -> valueMap.get("encounterId"))
-                .map(AttributeValue::getS)
+                .map(valueMap -> {
+                    Pokemon pokemon = new Pokemon();
+                    pokemon.setEncounterId(valueMap.get("encounterId").getS());
+                    pokemon.setDisappearTime(Long.parseLong(valueMap.get("disappearTime").getN()));
+                    return pokemon;
+                })
                 .collect(Collectors.toList());
     }
 
-    public void deletePokemonByEncounterId(String encounterId) {
-        Map<String, AttributeValue> key = new HashMap<>();
-        key.put(POKEMON_TABLE_KEY, new AttributeValue().withS(encounterId));
+    public void deletePokemon(Pokemon pokemon) {
+        Map<String, AttributeValue> hashKey = new HashMap<>();
+        hashKey.put(POKEMON_TABLE_KEY, new AttributeValue().withS(pokemon.getEncounterId()));
+        hashKey.put("disappearTime", new AttributeValue().withN(Long.toString(pokemon.getDisappearTime())));
 
         DeleteItemRequest deleteItemRequest = new DeleteItemRequest()
                 .withTableName(POKEMONS_TABLE)
-                .withKey(key);
+                .withKey(hashKey);
 
         dynamoDBAsync.deleteItem(deleteItemRequest);
     }

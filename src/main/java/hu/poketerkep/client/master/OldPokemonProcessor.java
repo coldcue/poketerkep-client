@@ -1,6 +1,7 @@
 package hu.poketerkep.client.master;
 
 import hu.poketerkep.client.config.support.InstanceConfiguration;
+import hu.poketerkep.client.model.Pokemon;
 import hu.poketerkep.client.service.DatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,15 +27,15 @@ public class OldPokemonProcessor {
         //If the instance is master
         if (instanceConfiguration.isMaster()) {
             logger.info("Searching for old pokemons...");
-            List<String> oldPokemonEncounterIds = databaseService.getOldPokemonEncounterIds();
+            List<Pokemon> oldPokemons = databaseService.getOldPokemons();
 
-            int oldPokemonsCount = oldPokemonEncounterIds.size();
+            int oldPokemonsCount = oldPokemons.size();
             logger.info("Found " + oldPokemonsCount + " old pokemons...");
 
             if (oldPokemonsCount > 0) {
                 logger.info("Deleting old pokemons...");
-                oldPokemonEncounterIds.parallelStream()
-                        .forEach(databaseService::deletePokemonByEncounterId);
+                oldPokemons.parallelStream()
+                        .forEach(databaseService::deletePokemon);
                 logger.info("Deleted " + oldPokemonsCount + " old pokemons...");
             } else {
                 logger.info("No old pokemons found");
