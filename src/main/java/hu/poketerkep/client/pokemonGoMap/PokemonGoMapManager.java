@@ -40,7 +40,7 @@ public class PokemonGoMapManager implements SmartLifecycle {
                 "-st", Integer.toString(conf.getSteps()),
                 "-k", conf.getGoogleMapsKey(),
                 "-l", conf.getLocation(),
-                "-t", Integer.toString(3));
+                "-t", Integer.toString(6));
 
         processBuilder.directory(DIR);
         processBuilder.redirectErrorStream(true);
