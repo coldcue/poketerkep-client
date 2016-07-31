@@ -1,21 +1,40 @@
 package hu.poketerkep.client.pokemonGoMap;
 
+import hu.poketerkep.client.model.LocationConfig;
+import hu.poketerkep.client.model.UserConfig;
+
 /**
  * This configuration stores the values for the PokemonGoMap
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class PokemonGoMapConfiguration {
-    private String username;
-    private String password;
-    private int steps;
+    private UserConfig user;
+    private LocationConfig location;
     private String googleMapsKey;
-    private String location;
 
-    public PokemonGoMapConfiguration(String username, String password, int steps, String googleMapsKey, String location) {
-        this.username = username;
-        this.password = password;
-        this.steps = steps;
+    public PokemonGoMapConfiguration() {
+
+    }
+
+    public PokemonGoMapConfiguration(UserConfig user, LocationConfig location, String googleMapsKey) {
+        this.user = user;
+        this.location = location;
         this.googleMapsKey = googleMapsKey;
+    }
+
+    public UserConfig getUser() {
+        return user;
+    }
+
+    public void setUser(UserConfig user) {
+        this.user = user;
+    }
+
+    public LocationConfig getLocation() {
+        return location;
+    }
+
+    public void setLocation(LocationConfig location) {
         this.location = location;
     }
 
@@ -25,37 +44,5 @@ public class PokemonGoMapConfiguration {
 
     public void setGoogleMapsKey(String googleMapsKey) {
         this.googleMapsKey = googleMapsKey;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public int getSteps() {
-        return steps;
-    }
-
-    public void setSteps(int steps) {
-        this.steps = steps;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
     }
 }

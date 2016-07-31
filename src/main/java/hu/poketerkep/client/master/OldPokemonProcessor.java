@@ -1,9 +1,9 @@
 package hu.poketerkep.client.master;
 
-import hu.poketerkep.client.config.support.InstanceConfiguration;
 import hu.poketerkep.client.model.Pokemon;
 import hu.poketerkep.client.service.PokemonDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -14,18 +14,19 @@ import java.util.logging.Logger;
 public class OldPokemonProcessor {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private final PokemonDataService pokemonDataService;
-    private final InstanceConfiguration instanceConfiguration;
+
+    @Value("${master:false}")
+    private boolean master;
 
     @Autowired
-    public OldPokemonProcessor(PokemonDataService pokemonDataService, InstanceConfiguration instanceConfiguration) {
+    public OldPokemonProcessor(PokemonDataService pokemonDataService) {
         this.pokemonDataService = pokemonDataService;
-        this.instanceConfiguration = instanceConfiguration;
     }
 
     @Scheduled(fixedDelay = 60 * 1000)
     public void processData() {
         //If the instance is master
-        if (instanceConfiguration.isMaster()) {
+        if (master) {
             logger.info("Searching for old pokemons...");
             List<Pokemon> oldPokemons = pokemonDataService.getOldPokemons();
 
