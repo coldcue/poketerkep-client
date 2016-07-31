@@ -28,7 +28,7 @@ public class UserConfigDataService {
 
     public UserConfig getUnusedUser() {
         // Now +90 sec
-        long time = Instant.now().plusSeconds(90).toEpochMilli();
+        long time = Instant.now().minusSeconds(90).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
@@ -67,6 +67,6 @@ public class UserConfigDataService {
                 .withUpdateExpression("set lastUsed = :now")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
-        dynamoDBAsync.updateItemAsync(updateItemRequest);
+        dynamoDBAsync.updateItem(updateItemRequest);
     }
 }

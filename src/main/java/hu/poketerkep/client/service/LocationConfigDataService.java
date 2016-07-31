@@ -28,7 +28,7 @@ public class LocationConfigDataService {
 
     public LocationConfig getUnusedLocation() {
         // Now +90 sec
-        long time = Instant.now().plusSeconds(90).toEpochMilli();
+        long time = Instant.now().minusSeconds(90).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
@@ -50,7 +50,7 @@ public class LocationConfigDataService {
         return LocationConfigMapper.mapFromDynamoDB(valueMap);
     }
 
-    public void updateUserLastUsed(String locationId) {
+    public void updateLocationLastUsed(String locationId) {
         long now = Instant.now().toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
@@ -65,6 +65,6 @@ public class LocationConfigDataService {
                 .withUpdateExpression("set lastUsed = :now")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
-        dynamoDBAsync.updateItemAsync(updateItemRequest);
+        dynamoDBAsync.updateItem(updateItemRequest);
     }
 }

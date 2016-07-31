@@ -2,6 +2,7 @@ package hu.poketerkep.client.pokemonGoMap;
 
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.support.UserConfigHelper;
+import org.apache.commons.io.FileUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
@@ -16,23 +17,30 @@ public class PokemonGoMapInstance {
     public static final File DIR = new File("PokemonGo-Map");
     public static final String RUNSERVER_PY = "runserver.py";
     private static final String PYTHON = "python";
-    private static final File LOG = new File("pokem.log");
+    private final File logFile;
     private final Logger logger;
     private final PokemonGoMapConfiguration conf;
     private final int instanceId;
+    private final String instanceName;
 
     private Process process;
 
     public PokemonGoMapInstance(PokemonGoMapConfiguration conf, int instanceId) {
         this.conf = conf;
         this.instanceId = instanceId;
-        logger = Logger.getLogger("PGM-Instance-"
+
+        instanceName = "PGM-Instance-"
                 + conf.getUser().getUserName()
-                + "-" + conf.getLocation().getLocationId());
+                + "-" + conf.getLocation().getLocationId();
+        logger = Logger.getLogger(instanceName);
+        logFile = new File(instanceName + ".log");
     }
 
-    public void start() {
-        logger.info("Starting PokemonGo-Map...");
+    public void start() throws IOException {
+        String locationString = conf.getLocation().getLatitude() + " " + conf.getLocation().getLongitude();
+        logger.info("Starting instance: [user:" + conf.getUser().getUserName() + ", loc:" + locationString + "]");
+
+        createWorkingDirectory();
 
         //Check if directory and runnable is present
         ProcessBuilder processBuilder = new ProcessBuilder("python",
@@ -41,13 +49,13 @@ public class PokemonGoMapInstance {
                 "-p", UserConfigHelper.getPassword(conf.getUser()),
                 "-st", Integer.toString(conf.getLocation().getSteps()),
                 "-k", conf.getGoogleMapsKey(),
-                "-l", conf.getLocation().getLatitude() + " " + conf.getLocation().getLongitude(),
+                "-l", locationString,
                 "-t", Integer.toString(3),
                 "-P", Integer.toString(getPort()));
 
-        processBuilder.directory(DIR);
+        processBuilder.directory(getWorkingDirectory());
         processBuilder.redirectErrorStream(true);
-        processBuilder.redirectOutput(LOG);
+        processBuilder.redirectOutput(logFile);
 
         //TODO handle errors
         try {
@@ -57,8 +65,17 @@ public class PokemonGoMapInstance {
         }
     }
 
+    private void createWorkingDirectory() throws IOException {
+        logger.info("Creating directory...");
+        FileUtils.copyDirectory(DIR, getWorkingDirectory());
+    }
+
+    private File getWorkingDirectory() {
+        return new File(instanceName);
+    }
+
     public void stop() {
-        logger.info("Stopping PokemonGo-Map...");
+        logger.info("Stopping instance...");
         if (process != null) {
             process.destroy();
             try {

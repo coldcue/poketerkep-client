@@ -14,7 +14,7 @@ public class LocationConfigMapper {
         locationConfig.setLatitude(Double.valueOf(valueMap.get("latitude").getN()));
         locationConfig.setLongitude(Double.valueOf(valueMap.get("longitude").getN()));
         locationConfig.setSteps(Integer.valueOf(valueMap.get("steps").getN()));
-        locationConfig.setLastUsed(Long.valueOf(valueMap.get("lastUsed").getS()));
+        locationConfig.setLastUsed(Long.valueOf(valueMap.get("lastUsed").getN()));
 
         return locationConfig;
     }

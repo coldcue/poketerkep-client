@@ -63,7 +63,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
                     .map(PokemonGoMapInstance::getConf)
                     .map(PokemonGoMapConfiguration::getLocation)
                     .map(LocationConfig::getLocationId)
-                    .forEach(locationConfigDataService::updateUserLastUsed);
+                    .forEach(locationConfigDataService::updateLocationLastUsed);
 
             logger.info("Done!");
         } else {
@@ -90,6 +90,9 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
 
         //Set google maps key
         conf.setGoogleMapsKey("AIzaSyC4w7rMpg48S8u8eJBiEESCEc6cKj5iTyI");
+
+        userConfigDataService.updateUserLastUsed(user.getUserName());
+        locationConfigDataService.updateLocationLastUsed(location.getLocationId());
 
         return new PokemonGoMapInstance(conf, id);
     }
