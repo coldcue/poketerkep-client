@@ -53,7 +53,7 @@ public class PokemonGoMapInstance {
                 "-st", Integer.toString(conf.getLocation().getSteps()),
                 "-k", conf.getGoogleMapsKey(),
                 "-l", locationString,
-                "-t", Integer.toString(3),
+                "-t", Integer.toString(conf.getThreads()),
                 "-P", Integer.toString(getPort()));
 
         processBuilder.directory(workingDir);
@@ -91,11 +91,18 @@ public class PokemonGoMapInstance {
     public RawDataJsonDto getRawData() {
         logger.info("Getting data...");
         RestTemplate restTemplate = new RestTemplate();
-        RawDataJsonDto rawData = restTemplate.getForObject("http://localhost:" + getPort() + "/raw_data?pokemon=true&pokestops=true&gyms=true&scanned=true", RawDataJsonDto.class);
+        //TODO add error handling
+        RawDataJsonDto rawData = new RawDataJsonDto();
+        try {
+            rawData = restTemplate.getForObject("http://localhost:" + getPort() + "/raw_data?pokemon=true&pokestops=true&gyms=true&scanned=true", RawDataJsonDto.class);
 
-        logger.info("Data arrived: [pokemons: " + rawData.getPokemons().size() +
-                ", pokestops: " + rawData.getPokestops().size() +
-                ", gyms: " + rawData.getGyms().size() + "]");
+            logger.info("Data arrived: [pokemons: " + rawData.getPokemons().size() +
+                    ", pokestops: " + rawData.getPokestops().size() +
+                    ", gyms: " + rawData.getGyms().size() + "]");
+        } catch (Exception e) {
+            logger.severe("Map does not answer!");
+        }
+
 
         return rawData;
     }

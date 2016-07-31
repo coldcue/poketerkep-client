@@ -11,6 +11,7 @@ public class PokemonGoMapConfiguration {
     private UserConfig user;
     private LocationConfig location;
     private String googleMapsKey;
+    private int threads;
 
     public PokemonGoMapConfiguration() {
 
@@ -44,5 +45,13 @@ public class PokemonGoMapConfiguration {
 
     public void setGoogleMapsKey(String googleMapsKey) {
         this.googleMapsKey = googleMapsKey;
+    }
+
+    public int getThreads() {
+        return threads;
+    }
+
+    public void setThreads(int threads) {
+        this.threads = threads;
     }
 }

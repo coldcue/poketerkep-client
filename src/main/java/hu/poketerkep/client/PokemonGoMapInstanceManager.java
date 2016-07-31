@@ -8,6 +8,7 @@ import hu.poketerkep.client.pokemonGoMap.PokemonGoMapInstance;
 import hu.poketerkep.client.service.LocationConfigDataService;
 import hu.poketerkep.client.service.UserConfigDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,12 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     private boolean running;
     private List<PokemonGoMapInstance> pokemonGoMapInstances = new ArrayList<>();
 
+    @Value("${instance-count:3}")
+    private int instanceCount;
+
+    @Value("${pokemap-threads:3}")
+    private int pokemapThreads;
+
     @Autowired
     public PokemonGoMapInstanceManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService) {
         this.locationConfigDataService = locationConfigDataService;
@@ -34,7 +41,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     @Override
     public void start() {
         // Create instances (TODO intellingent instance creation)
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < instanceCount; i++) {
             try {
                 PokemonGoMapInstance instance = createInstance(i);
                 instance.start();
@@ -90,6 +97,9 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
 
         //Set google maps key
         conf.setGoogleMapsKey("AIzaSyC4w7rMpg48S8u8eJBiEESCEc6cKj5iTyI");
+
+        //Set threads
+        conf.setThreads(pokemapThreads);
 
         userConfigDataService.updateUserLastUsed(user.getUserName());
         locationConfigDataService.updateLocationLastUsed(location.getLocationId());
