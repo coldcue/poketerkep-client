@@ -22,6 +22,7 @@ public class PokemonGoMapInstance {
     private final PokemonGoMapConfiguration conf;
     private final int instanceId;
     private final String instanceName;
+    private final File workingDir;
 
     private Process process;
 
@@ -34,13 +35,15 @@ public class PokemonGoMapInstance {
                 + "-" + conf.getLocation().getLocationId();
         logger = Logger.getLogger(instanceName);
         logFile = new File(instanceName + ".log");
+        workingDir = new File(instanceName);
     }
 
     public void start() throws IOException {
         String locationString = conf.getLocation().getLatitude() + " " + conf.getLocation().getLongitude();
         logger.info("Starting instance: [user:" + conf.getUser().getUserName() + ", loc:" + locationString + "]");
 
-        createWorkingDirectory();
+        logger.info("Creating directory: " + workingDir);
+        FileUtils.copyDirectory(DIR, workingDir);
 
         //Check if directory and runnable is present
         ProcessBuilder processBuilder = new ProcessBuilder("python",
@@ -53,7 +56,7 @@ public class PokemonGoMapInstance {
                 "-t", Integer.toString(3),
                 "-P", Integer.toString(getPort()));
 
-        processBuilder.directory(getWorkingDirectory());
+        processBuilder.directory(workingDir);
         processBuilder.redirectErrorStream(true);
         processBuilder.redirectOutput(logFile);
 
@@ -65,14 +68,6 @@ public class PokemonGoMapInstance {
         }
     }
 
-    private void createWorkingDirectory() throws IOException {
-        logger.info("Creating directory...");
-        FileUtils.copyDirectory(DIR, getWorkingDirectory());
-    }
-
-    private File getWorkingDirectory() {
-        return new File(instanceName);
-    }
 
     public void stop() {
         logger.info("Stopping instance...");
@@ -82,6 +77,12 @@ public class PokemonGoMapInstance {
                 process.waitFor(10, TimeUnit.SECONDS);
                 process = null;
             } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
+                logger.info("Deleting directory...");
+                FileUtils.deleteDirectory(workingDir);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }

@@ -15,7 +15,7 @@ public class OldPokemonProcessor {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private final PokemonDataService pokemonDataService;
 
-    @Value("${master:false}")
+    @Value("${master-client:false}")
     private boolean master;
 
     @Autowired
