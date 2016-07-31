@@ -18,14 +18,14 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class DatabaseService {
+public class PokemonDataService {
 
     private static final String POKEMONS_TABLE = "pokemons";
     private static final String POKEMON_TABLE_KEY = "encounterId";
     private final AmazonDynamoDBAsync dynamoDBAsync;
 
     @Autowired
-    public DatabaseService(AmazonDynamoDBAsync dynamoDBAsync) {
+    public PokemonDataService(AmazonDynamoDBAsync dynamoDBAsync) {
         this.dynamoDBAsync = dynamoDBAsync;
     }
 

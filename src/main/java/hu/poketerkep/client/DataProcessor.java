@@ -4,7 +4,7 @@ import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.mapper.PokemonMapper;
 import hu.poketerkep.client.model.Pokemon;
 import hu.poketerkep.client.pokemonGoMap.PokemonGoMapDataService;
-import hu.poketerkep.client.service.DatabaseService;
+import hu.poketerkep.client.service.PokemonDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -20,14 +20,14 @@ import java.util.stream.Collectors;
 @Component
 public class DataProcessor {
     private final PokemonGoMapDataService dataService;
-    private final DatabaseService databaseService;
+    private final PokemonDataService pokemonDataService;
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private List<Pokemon> lastPokemons = new ArrayList<>();
 
     @Autowired
-    public DataProcessor(PokemonGoMapDataService dataService, DatabaseService databaseService) {
+    public DataProcessor(PokemonGoMapDataService dataService, PokemonDataService pokemonDataService) {
         this.dataService = dataService;
-        this.databaseService = databaseService;
+        this.pokemonDataService = pokemonDataService;
     }
 
     @Scheduled(fixedDelay = 5 * 1000, initialDelay = 10 * 1000)
@@ -64,7 +64,7 @@ public class DataProcessor {
 
         if (pokemonsToSave.size() > 0) {
             logger.info("Saving " + pokemonsToSave.size() + " new pokemons");
-            databaseService.putPokemons(pokemonsToSave);
+            pokemonDataService.putPokemons(pokemonsToSave);
         } else {
             logger.info("No pokemons to save.");
         }

@@ -4,8 +4,8 @@ package hu.poketerkep.client.model;
 @SuppressWarnings("unused")
 public class UserConfig {
     private String userName;
-    private String usedBy;
-    private Boolean isBanned;
+    private Long lastUsed;
+    private Boolean banned;
 
     public String getUserName() {
         return userName;
@@ -15,19 +15,19 @@ public class UserConfig {
         this.userName = userName;
     }
 
-    public String getUsedBy() {
-        return usedBy;
+    public Long getLastUsed() {
+        return lastUsed;
     }
 
-    public void setUsedBy(String usedBy) {
-        this.usedBy = usedBy;
+    public void setLastUsed(Long lastUsed) {
+        this.lastUsed = lastUsed;
     }
 
     public Boolean getBanned() {
-        return isBanned;
+        return banned;
     }
 
     public void setBanned(Boolean banned) {
-        isBanned = banned;
+        this.banned = banned;
     }
 }

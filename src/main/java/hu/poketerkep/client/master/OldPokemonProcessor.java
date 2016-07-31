@@ -2,7 +2,7 @@ package hu.poketerkep.client.master;
 
 import hu.poketerkep.client.config.support.InstanceConfiguration;
 import hu.poketerkep.client.model.Pokemon;
-import hu.poketerkep.client.service.DatabaseService;
+import hu.poketerkep.client.service.PokemonDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -13,12 +13,12 @@ import java.util.logging.Logger;
 @Component
 public class OldPokemonProcessor {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
-    private final DatabaseService databaseService;
+    private final PokemonDataService pokemonDataService;
     private final InstanceConfiguration instanceConfiguration;
 
     @Autowired
-    public OldPokemonProcessor(DatabaseService databaseService, InstanceConfiguration instanceConfiguration) {
-        this.databaseService = databaseService;
+    public OldPokemonProcessor(PokemonDataService pokemonDataService, InstanceConfiguration instanceConfiguration) {
+        this.pokemonDataService = pokemonDataService;
         this.instanceConfiguration = instanceConfiguration;
     }
 
@@ -27,7 +27,7 @@ public class OldPokemonProcessor {
         //If the instance is master
         if (instanceConfiguration.isMaster()) {
             logger.info("Searching for old pokemons...");
-            List<Pokemon> oldPokemons = databaseService.getOldPokemons();
+            List<Pokemon> oldPokemons = pokemonDataService.getOldPokemons();
 
             int oldPokemonsCount = oldPokemons.size();
             logger.info("Found " + oldPokemonsCount + " old pokemons...");
@@ -35,7 +35,7 @@ public class OldPokemonProcessor {
             if (oldPokemonsCount > 0) {
                 logger.info("Deleting old pokemons...");
                 oldPokemons.parallelStream()
-                        .forEach(databaseService::deletePokemon);
+                        .forEach(pokemonDataService::deletePokemon);
                 logger.info("Deleted " + oldPokemonsCount + " old pokemons...");
             } else {
                 logger.info("No old pokemons found");

@@ -7,7 +7,7 @@ public class LocationConfig {
     private Double latitude;
     private Double longitude;
     private Integer steps;
-    private String usedBy;
+    private Long lastUsed;
 
 
     public String getLocationId() {
@@ -42,11 +42,11 @@ public class LocationConfig {
         this.steps = steps;
     }
 
-    public String getUsedBy() {
-        return usedBy;
+    public Long getLastUsed() {
+        return lastUsed;
     }
 
-    public void setUsedBy(String usedBy) {
-        this.usedBy = usedBy;
+    public void setLastUsed(Long lastUsed) {
+        this.lastUsed = lastUsed;
     }
 }
