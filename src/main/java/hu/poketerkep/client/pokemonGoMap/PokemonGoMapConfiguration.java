@@ -14,7 +14,7 @@ public class PokemonGoMapConfiguration {
     private LocationConfig location;
     private String googleMapsKey;
     private int threads;
-    private Optional<Integer> proxyPort;
+    private Optional<Integer> proxyPort = Optional.empty();
 
     public PokemonGoMapConfiguration() {
 

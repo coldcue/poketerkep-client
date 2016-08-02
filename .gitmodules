@@ -1,4 +1,0 @@
-[submodule "PokemonGo-Map"]
-	path = PokemonGo-Map
-	url = git@github.com:coldcue/PokemonGo-Map.git
-	branch = develop

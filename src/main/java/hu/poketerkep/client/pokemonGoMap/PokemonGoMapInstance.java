@@ -8,7 +8,6 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -51,7 +50,22 @@ public class PokemonGoMapInstance {
 
         List<String> command = new ArrayList<>();
 
-        command.addAll(Arrays.asList("python",
+        Optional<Integer> proxyPort = conf.getProxyPort();
+
+        String proxyAddress = "socks5://127.0.0.1:" + Integer.toString(proxyPort.get());
+
+        //command.addAll(Arrays.asList());
+
+        // Check if there's a proxy
+
+//        if (proxyPort.isPresent()) {
+//            command.addAll(Arrays.asList(
+//                    "--proxy", "socks5://127.0.0.1:" + Integer.toString(proxyPort.get())
+//            ));
+//        }
+
+        //Check if directory and runnable is present
+        ProcessBuilder processBuilder = new ProcessBuilder("python",
                 "runserver.py",
                 "-u", conf.getUser().getUserName(),
                 "-p", UserConfigHelper.getPassword(conf.getUser()),
@@ -59,18 +73,8 @@ public class PokemonGoMapInstance {
                 "-k", conf.getGoogleMapsKey(),
                 "-l", locationString,
                 "-t", Integer.toString(conf.getThreads()),
-                "-P", Integer.toString(getPort())));
-
-        // Check if there's a proxy
-        Optional<Integer> proxyPort = conf.getProxyPort();
-        if (proxyPort.isPresent()) {
-            command.addAll(Arrays.asList(
-                    "--proxy", Integer.toString(proxyPort.get())
-            ));
-        }
-
-        //Check if directory and runnable is present
-        ProcessBuilder processBuilder = new ProcessBuilder(command);
+                "-P", Integer.toString(getPort()),
+                "--proxy", proxyAddress);
 
         processBuilder.directory(workingDir);
         processBuilder.redirectErrorStream(true);
