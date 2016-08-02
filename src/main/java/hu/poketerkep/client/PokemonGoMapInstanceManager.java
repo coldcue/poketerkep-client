@@ -7,6 +7,7 @@ import hu.poketerkep.client.pokemonGoMap.PokemonGoMapConfiguration;
 import hu.poketerkep.client.pokemonGoMap.PokemonGoMapInstance;
 import hu.poketerkep.client.service.LocationConfigDataService;
 import hu.poketerkep.client.service.UserConfigDataService;
+import hu.poketerkep.client.tor.TorInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -25,12 +27,16 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     private final Logger logger = Logger.getLogger(this.getClass().getName());
     private boolean running;
     private List<PokemonGoMapInstance> pokemonGoMapInstances = new ArrayList<>();
+    private List<TorInstance> torInstances = new ArrayList<>();
 
     @Value("${instance-count:3}")
     private int instanceCount;
 
     @Value("${pokemap-threads:3}")
     private int pokemapThreads;
+
+    @Value("${use-tor:false")
+    private boolean useTor;
 
     @Autowired
     public PokemonGoMapInstanceManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService) {
@@ -80,6 +86,13 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
 
     private PokemonGoMapInstance createInstance(int id) throws Exception {
         PokemonGoMapConfiguration conf = new PokemonGoMapConfiguration();
+
+        // If tor is used
+        if (useTor) {
+            TorInstance torInstance = new TorInstance(id);
+            torInstance.run();
+            conf.setProxyPort(Optional.of(torInstance.getProxyPort()));
+        }
 
         // Set user
         UserConfig user = userConfigDataService.getUnusedUser();

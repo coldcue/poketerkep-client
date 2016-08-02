@@ -40,6 +40,7 @@ public class DataProcessor {
 
         // Get pokemons
         List<Pokemon> pokemons = rawDatas.stream()
+                .filter(rawDataJsonDto -> rawDataJsonDto.getPokemons() != null) // Null check
                 .map(RawDataJsonDto::getPokemons)
                 .flatMap(Collection::stream)
                 .map(PokemonMapper::mapFromJsonDto)

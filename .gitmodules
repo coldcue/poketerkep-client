@@ -1,4 +1,4 @@
 [submodule "PokemonGo-Map"]
 	path = PokemonGo-Map
-	url = https://github.com/AHAAAAAAA/PokemonGo-Map.git
+url=https://github.com/tim95030/PokemonGo-Map.git
 	branch = master

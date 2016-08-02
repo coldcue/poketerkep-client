@@ -3,6 +3,8 @@ package hu.poketerkep.client.pokemonGoMap;
 import hu.poketerkep.client.model.LocationConfig;
 import hu.poketerkep.client.model.UserConfig;
 
+import java.util.Optional;
+
 /**
  * This configuration stores the values for the PokemonGoMap
  */
@@ -12,6 +14,7 @@ public class PokemonGoMapConfiguration {
     private LocationConfig location;
     private String googleMapsKey;
     private int threads;
+    private Optional<Integer> proxyPort;
 
     public PokemonGoMapConfiguration() {
 
@@ -53,5 +56,13 @@ public class PokemonGoMapConfiguration {
 
     public void setThreads(int threads) {
         this.threads = threads;
+    }
+
+    public Optional<Integer> getProxyPort() {
+        return proxyPort;
+    }
+
+    public void setProxyPort(Optional<Integer> proxyPort) {
+        this.proxyPort = proxyPort;
     }
 }
