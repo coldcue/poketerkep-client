@@ -7,6 +7,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -45,8 +49,9 @@ public class PokemonGoMapInstance {
         logger.info("Creating directory: " + workingDir);
         FileUtils.copyDirectory(DIR, workingDir);
 
-        //Check if directory and runnable is present
-        ProcessBuilder processBuilder = new ProcessBuilder("python",
+        List<String> command = new ArrayList<>();
+
+        command.addAll(Arrays.asList("python",
                 "runserver.py",
                 "-u", conf.getUser().getUserName(),
                 "-p", UserConfigHelper.getPassword(conf.getUser()),
@@ -54,7 +59,18 @@ public class PokemonGoMapInstance {
                 "-k", conf.getGoogleMapsKey(),
                 "-l", locationString,
                 "-t", Integer.toString(conf.getThreads()),
-                "-P", Integer.toString(getPort()));
+                "-P", Integer.toString(getPort())));
+
+        // Check if there's a proxy
+        Optional<Integer> proxyPort = conf.getProxyPort();
+        if (proxyPort.isPresent()) {
+            command.addAll(Arrays.asList(
+                    "--proxy", Integer.toString(proxyPort.get())
+            ));
+        }
+
+        //Check if directory and runnable is present
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
 
         processBuilder.directory(workingDir);
         processBuilder.redirectErrorStream(true);

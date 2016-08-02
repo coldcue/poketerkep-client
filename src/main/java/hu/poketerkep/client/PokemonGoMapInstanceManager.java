@@ -35,7 +35,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     @Value("${pokemap-threads:3}")
     private int pokemapThreads;
 
-    @Value("${use-tor:false")
+    @Value("${use-tor:false}")
     private boolean useTor;
 
     @Autowired
@@ -90,8 +90,9 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         // If tor is used
         if (useTor) {
             TorInstance torInstance = new TorInstance(id);
-            torInstance.run();
+            torInstance.start();
             conf.setProxyPort(Optional.of(torInstance.getProxyPort()));
+            torInstances.add(torInstance);
         }
 
         // Set user
@@ -131,6 +132,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     public void stop() {
         running = false;
         pokemonGoMapInstances.forEach(PokemonGoMapInstance::stop);
+        torInstances.forEach(torInstance -> torInstance.setStop(true));
     }
 
 

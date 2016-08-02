@@ -99,7 +99,7 @@ public class TorInstance extends Thread {
 
                     logger.info(msg);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                 }
             }
 
