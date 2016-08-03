@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +25,6 @@ public class PokemonGoMapInstance {
     private final Logger logger;
     private final PokemonGoMapConfiguration conf;
     private final int instanceId;
-    private final String instanceName;
     private final File workingDir;
 
     private Process process;
@@ -33,7 +33,7 @@ public class PokemonGoMapInstance {
         this.conf = conf;
         this.instanceId = instanceId;
 
-        instanceName = "PGM-Instance-"
+        String instanceName = "PGM-Instance-"
                 + conf.getUser().getUserName()
                 + "-" + conf.getLocation().getLocationId();
         logger = Logger.getLogger(instanceName);
@@ -48,33 +48,31 @@ public class PokemonGoMapInstance {
         logger.info("Creating directory: " + workingDir);
         FileUtils.copyDirectory(DIR, workingDir);
 
+
+        //Add command parameters
         List<String> command = new ArrayList<>();
-
-        Optional<Integer> proxyPort = conf.getProxyPort();
-
-        String proxyAddress = "socks5://127.0.0.1:" + Integer.toString(proxyPort.get());
-
-        //command.addAll(Arrays.asList());
-
-        // Check if there's a proxy
-
-//        if (proxyPort.isPresent()) {
-//            command.addAll(Arrays.asList(
-//                    "--proxy", "socks5://127.0.0.1:" + Integer.toString(proxyPort.get())
-//            ));
-//        }
-
-        //Check if directory and runnable is present
-        ProcessBuilder processBuilder = new ProcessBuilder("python",
-                "runserver.py",
+        command.addAll(Arrays.asList(PYTHON,
+                RUNSERVER_PY,
                 "-u", conf.getUser().getUserName(),
                 "-p", UserConfigHelper.getPassword(conf.getUser()),
                 "-st", Integer.toString(conf.getLocation().getSteps()),
                 "-k", conf.getGoogleMapsKey(),
                 "-l", locationString,
-                "-t", Integer.toString(conf.getThreads()),
-                "-P", Integer.toString(getPort()),
-                "--proxy", proxyAddress);
+                //"-t", Integer.toString(conf.getThreads()),
+                "-P", Integer.toString(getPort())
+        ));
+
+        // Check if there's a proxy
+        Optional<Integer> proxyPort = conf.getProxyPort();
+        if (proxyPort.isPresent()) {
+            String proxyAddress = "socks5://127.0.0.1:" + Integer.toString(proxyPort.get());
+            command.addAll(Arrays.asList(
+                    "--proxy", proxyAddress
+            ));
+        }
+
+        //Check if directory and runnable is present
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
 
         processBuilder.directory(workingDir);
         processBuilder.redirectErrorStream(true);

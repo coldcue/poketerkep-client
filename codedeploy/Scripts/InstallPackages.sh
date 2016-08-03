@@ -6,7 +6,7 @@ sudo apt-get update -y 1>/dev/null
 set -e
 
 echo "#### Install prerequisites"
-sudo apt-get install unzip software-properties-common python-software-properties python python-pip ntp cloud-utils -y
+sudo apt-get install unzip software-properties-common python-software-properties python python-pip ntp cloud-utils tor -y
 
 ###############################################################
 echo "#### Install Java 8"
