@@ -3,6 +3,7 @@ package hu.poketerkep.client.pokemonGoMap;
 import hu.poketerkep.client.model.LocationConfig;
 import hu.poketerkep.client.model.UserConfig;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Optional;
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class PokemonGoMapConfiguration {
-    private UserConfig user;
+    private List<UserConfig> users;
     private LocationConfig location;
     private String googleMapsKey;
     private int threads;
@@ -20,18 +21,18 @@ public class PokemonGoMapConfiguration {
 
     }
 
-    public PokemonGoMapConfiguration(UserConfig user, LocationConfig location, String googleMapsKey) {
-        this.user = user;
+    public PokemonGoMapConfiguration(List<UserConfig> users, LocationConfig location, String googleMapsKey) {
+        this.users = users;
         this.location = location;
         this.googleMapsKey = googleMapsKey;
     }
 
-    public UserConfig getUser() {
-        return user;
+    public List<UserConfig> getUsers() {
+        return users;
     }
 
-    public void setUser(UserConfig user) {
-        this.user = user;
+    public void setUsers(List<UserConfig> users) {
+        this.users = users;
     }
 
     public LocationConfig getLocation() {

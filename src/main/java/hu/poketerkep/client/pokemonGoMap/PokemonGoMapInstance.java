@@ -1,6 +1,7 @@
 package hu.poketerkep.client.pokemonGoMap;
 
 import hu.poketerkep.client.json.RawDataJsonDto;
+import hu.poketerkep.client.model.UserConfig;
 import hu.poketerkep.client.support.UserConfigHelper;
 import org.apache.commons.io.FileUtils;
 import org.springframework.web.client.RestTemplate;
@@ -33,9 +34,7 @@ public class PokemonGoMapInstance {
         this.conf = conf;
         this.instanceId = instanceId;
 
-        String instanceName = "PGM-Instance-"
-                + conf.getUser().getUserName()
-                + "-" + conf.getLocation().getLocationId();
+        String instanceName = "PGM-Instance-" + conf.getLocation().getLocationId();
         logger = Logger.getLogger(instanceName);
         logFile = new File(instanceName + ".log");
         workingDir = new File(instanceName);
@@ -43,24 +42,30 @@ public class PokemonGoMapInstance {
 
     public void start() throws IOException {
         String locationString = conf.getLocation().getLatitude() + " " + conf.getLocation().getLongitude();
-        logger.info("Starting instance: [user:" + conf.getUser().getUserName() + ", loc:" + locationString + "]");
+        logger.info("Starting instance: [user:" + conf.getUsers() + ", loc:" + locationString + "]");
 
         logger.info("Creating directory: " + workingDir);
         FileUtils.copyDirectory(DIR, workingDir);
 
 
-        //Add command parameters
+        // Add command parameters
         List<String> command = new ArrayList<>();
         command.addAll(Arrays.asList(PYTHON,
                 RUNSERVER_PY,
-                "-u", conf.getUser().getUserName(),
-                "-p", UserConfigHelper.getPassword(conf.getUser()),
                 "-st", Integer.toString(conf.getLocation().getSteps()),
                 "-k", conf.getGoogleMapsKey(),
                 "-l", locationString,
-                //"-t", Integer.toString(conf.getThreads()),
+                "-sd", Integer.toString(6),
                 "-P", Integer.toString(getPort())
         ));
+
+        // Add users
+        for (UserConfig userConfig : conf.getUsers()) {
+            command.add("-u");
+            command.add(userConfig.getUserName());
+            command.add("-p");
+            command.add(UserConfigHelper.getPassword(userConfig));
+        }
 
         // Check if there's a proxy
         Optional<Integer> proxyPort = conf.getProxyPort();
@@ -70,6 +75,8 @@ public class PokemonGoMapInstance {
                     "--proxy", proxyAddress
             ));
         }
+
+        logger.info("Command: " + String.join(" ", command));
 
         //Check if directory and runnable is present
         ProcessBuilder processBuilder = new ProcessBuilder(command);
@@ -126,7 +133,7 @@ public class PokemonGoMapInstance {
     }
 
     private int getPort() {
-        return 5000 + instanceId;
+        return 6000 + instanceId;
     }
 
     public boolean isRunning() {

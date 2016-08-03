@@ -36,7 +36,7 @@ public class TorInstance extends Thread {
         this.torId = torId;
         logger = Logger.getLogger("Tor-Instance-" + torId);
 
-        proxyPort = 9060 + torId * 2;
+        proxyPort = 7060 + torId * 2;
         controlPort = proxyPort + 1;
 
         torControl = new TorControl("127.0.0.1", controlPort, null);

@@ -1,5 +1,6 @@
 package hu.poketerkep.client;
 
+import hu.poketerkep.client.exception.NoMoreLocationException;
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.model.LocationConfig;
 import hu.poketerkep.client.model.UserConfig;
@@ -15,6 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class PokemonGoMapInstanceManager implements SmartLifecycle {
+    private static final int NUM_USERS = 10;
     private final UserConfigDataService userConfigDataService;
     private final LocationConfigDataService locationConfigDataService;
     private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -52,8 +55,12 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
                 PokemonGoMapInstance instance = createInstance(i);
                 instance.start();
                 pokemonGoMapInstances.add(instance);
+            } catch (NoMoreLocationException e) {
+                logger.info("No more locations");
+                break;
             } catch (Exception e) {
                 e.printStackTrace();
+
             }
         }
         running = true;
@@ -67,7 +74,8 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
             //Update users
             pokemonGoMapInstances.stream()
                     .map(PokemonGoMapInstance::getConf)
-                    .map(PokemonGoMapConfiguration::getUser)
+                    .map(PokemonGoMapConfiguration::getUsers)
+                    .flatMap(Collection::stream)
                     .map(UserConfig::getUserName)
                     .forEach(userConfigDataService::updateUserLastUsed);
 
@@ -96,16 +104,16 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         }
 
         // Set user
-        UserConfig user = userConfigDataService.getUnusedUser();
-        if (user == null) {
+        List<UserConfig> users = userConfigDataService.getUnusedUsers(NUM_USERS);
+        if (users.size() == 0) {
             throw new Exception("No user found");
         }
-        conf.setUser(user);
+        conf.setUsers(users);
 
         // Set location
         LocationConfig location = locationConfigDataService.getUnusedLocation();
         if (location == null) {
-            throw new Exception("No location found");
+            throw new NoMoreLocationException();
         }
         conf.setLocation(location);
 
@@ -115,7 +123,9 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         //Set threads
         conf.setThreads(pokemapThreads);
 
-        userConfigDataService.updateUserLastUsed(user.getUserName());
+        users.stream()
+                .map(UserConfig::getUserName)
+                .forEach(userConfigDataService::updateUserLastUsed);
         locationConfigDataService.updateLocationLastUsed(location.getLocationId());
 
         return new PokemonGoMapInstance(conf, id);

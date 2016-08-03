@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class UserConfigDataService {
@@ -26,7 +29,7 @@ public class UserConfigDataService {
         this.dynamoDBAsync = dynamoDBAsync;
     }
 
-    public UserConfig getUnusedUser() {
+    public List<UserConfig> getUnusedUsers(int num) {
         // Now +90 sec
         long time = Instant.now().minusSeconds(90).toEpochMilli();
 
@@ -41,15 +44,14 @@ public class UserConfigDataService {
         ScanResult result = dynamoDBAsync.scan(scanRequest);
 
         // If there are no results
-        if (result.getCount() == 0) {
-            return null;
+        if (result.getCount() < num) {
+            return Collections.emptyList();
         }
 
-        // Get the first
-        Map<String, AttributeValue> valueMap = result.getItems().get(0);
-
-
-        return UserConfigMapper.mapFromDynamoDB(valueMap);
+        return result.getItems().stream()
+                .limit(num)
+                .map(UserConfigMapper::mapFromDynamoDB)
+                .collect(Collectors.toList());
     }
 
     public void updateUserLastUsed(String userName) {
