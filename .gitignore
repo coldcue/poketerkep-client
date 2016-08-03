@@ -61,6 +61,7 @@ crashlytics-build.properties
 fabric.properties
 
 #Pokemon Go Map
-pokem.log
 revision/
 revision.zip
+tor-*
+PGM-*
