@@ -103,12 +103,6 @@ public class PokemonGoMapInstance {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            try {
-                logger.info("Deleting directory...");
-                FileUtils.deleteDirectory(workingDir);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 

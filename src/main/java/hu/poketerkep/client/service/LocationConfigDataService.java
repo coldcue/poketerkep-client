@@ -50,6 +50,7 @@ public class LocationConfigDataService {
         return LocationConfigMapper.mapFromDynamoDB(valueMap);
     }
 
+    @SuppressWarnings("Duplicates")
     public void updateLocationLastUsed(String locationId) {
         long now = Instant.now().toEpochMilli();
 
@@ -65,6 +66,22 @@ public class LocationConfigDataService {
                 .withUpdateExpression("set lastUsed = :now")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
-        dynamoDBAsync.updateItem(updateItemRequest);
+        dynamoDBAsync.updateItemAsync(updateItemRequest);
+    }
+
+    public void releaseLocation(String locationId) {
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":zero", new AttributeValue().withN(Long.toString(0)));
+
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(LOCATION_CONFIG_KEY, new AttributeValue().withS(locationId));
+
+        UpdateItemRequest updateItemRequest = new UpdateItemRequest()
+                .withTableName(LOCATION_CONFIG_TABLE)
+                .withKey(key)
+                .withUpdateExpression("set lastUsed = :zero")
+                .withExpressionAttributeValues(expressionAttributeValues);
+
+        dynamoDBAsync.updateItemAsync(updateItemRequest);
     }
 }

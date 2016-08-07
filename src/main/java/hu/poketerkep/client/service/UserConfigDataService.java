@@ -30,8 +30,8 @@ public class UserConfigDataService {
     }
 
     public List<UserConfig> getUnusedUsers(int num) {
-        // Now +90 sec
-        long time = Instant.now().minusSeconds(90).toEpochMilli();
+        // Now +900 sec
+        long time = Instant.now().minusSeconds(900).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
@@ -67,6 +67,22 @@ public class UserConfigDataService {
                 .withTableName(USER_CONFIG_TABLE)
                 .withKey(key)
                 .withUpdateExpression("set lastUsed = :now")
+                .withExpressionAttributeValues(expressionAttributeValues);
+
+        dynamoDBAsync.updateItem(updateItemRequest);
+    }
+
+    public void releaseUser(String userName) {
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":zero", new AttributeValue().withN(String.valueOf(0)));
+
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(USER_CONFIG_KEY, new AttributeValue().withS(userName));
+
+        UpdateItemRequest updateItemRequest = new UpdateItemRequest()
+                .withTableName(USER_CONFIG_TABLE)
+                .withKey(key)
+                .withUpdateExpression("set lastUsed = :zero")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
         dynamoDBAsync.updateItem(updateItemRequest);
