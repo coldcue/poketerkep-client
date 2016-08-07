@@ -30,4 +30,13 @@ public class UserConfig {
     public void setBanned(Boolean banned) {
         this.banned = banned;
     }
+
+    @Override
+    public String toString() {
+        return "UserConfig{" +
+                "userName='" + userName + '\'' +
+                ", lastUsed=" + lastUsed +
+                ", banned=" + banned +
+                '}';
+    }
 }

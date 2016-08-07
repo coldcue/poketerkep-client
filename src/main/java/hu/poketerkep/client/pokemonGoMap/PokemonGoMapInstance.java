@@ -36,17 +36,16 @@ public class PokemonGoMapInstance {
 
         String instanceName = "PGM-Instance-" + conf.getLocation().getLocationId();
         logger = Logger.getLogger(instanceName);
-        logFile = new File(instanceName + ".log");
-        workingDir = new File(instanceName);
+        logFile = new File("instances/" + instanceName + ".log");
+        workingDir = new File("instances/" + instanceName);
     }
 
     public void start() throws IOException {
         String locationString = conf.getLocation().getLatitude() + " " + conf.getLocation().getLongitude();
         logger.info("Starting instance: [user:" + conf.getUsers() + ", loc:" + locationString + "]");
 
-        logger.info("Creating directory: " + workingDir);
+        logger.info("Creating working directory: " + workingDir);
         FileUtils.copyDirectory(DIR, workingDir);
-
 
         // Add command parameters
         List<String> command = new ArrayList<>();
