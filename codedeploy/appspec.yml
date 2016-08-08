@@ -1,0 +1,17 @@
+version: 0.0
+os: linux
+files:
+  - source: /poketerkep-client.jar
+    destination: /home/ubuntu/poketerkep-client
+  - source: /PokemonGo-Map
+    destination: /home/ubuntu/poketerkep-client/PokemonGo-Map
+hooks:
+  BeforeInstall:
+    - location: Scripts/StopService.sh
+      timeout: 3
+    - location: Scripts/ClearDirectory.sh
+    - location: Scripts/RemoveService.sh
+    - location: Scripts/InstallPackages.sh
+  ApplicationStart:
+    - location: Scripts/InstallService.sh
+    - location: Scripts/StartService.sh
