@@ -29,6 +29,7 @@ public class PokemonGoMapInstance {
     private final File workingDir;
 
     private Process process;
+    private PokemonGoMapInstanceLogReader logReader;
 
     public PokemonGoMapInstance(PokemonGoMapConfiguration conf, int instanceId) {
         this.conf = conf;
@@ -84,9 +85,10 @@ public class PokemonGoMapInstance {
         processBuilder.redirectErrorStream(true);
         processBuilder.redirectOutput(logFile);
 
-        //TODO handle errors
         try {
             process = processBuilder.start();
+            logReader = new PokemonGoMapInstanceLogReader(this, process.getInputStream());
+            logReader.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
