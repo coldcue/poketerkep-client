@@ -1,8 +1,10 @@
 package hu.poketerkep.client.model;
 
 
+import hu.poketerkep.client.model.helpers.LastUsed;
+
 @SuppressWarnings("unused")
-public class LocationConfig {
+public class LocationConfig implements LastUsed {
     private String locationId;
     private Double latitude;
     private Double longitude;

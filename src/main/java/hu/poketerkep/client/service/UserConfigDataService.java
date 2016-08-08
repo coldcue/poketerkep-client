@@ -15,12 +15,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
 public class UserConfigDataService {
     private static final String USER_CONFIG_TABLE = "UserConfig";
     private static final String USER_CONFIG_KEY = "userName";
+
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     private final AmazonDynamoDBAsync dynamoDBAsync;
 
@@ -30,7 +33,7 @@ public class UserConfigDataService {
     }
 
     public List<UserConfig> getUnusedUsers(int num) {
-        // Now +900 sec
+        // Now -900 sec
         long time = Instant.now().minusSeconds(900).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
@@ -69,10 +72,12 @@ public class UserConfigDataService {
                 .withUpdateExpression("set lastUsed = :now")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
+        logger.finer("Updating last use value for user " + userName + " to " + now);
+
         dynamoDBAsync.updateItem(updateItemRequest);
     }
 
-    public void releaseUser(String userName) {
+    void releaseUser(String userName) {
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":zero", new AttributeValue().withN(String.valueOf(0)));
 
@@ -84,6 +89,9 @@ public class UserConfigDataService {
                 .withKey(key)
                 .withUpdateExpression("set lastUsed = :zero")
                 .withExpressionAttributeValues(expressionAttributeValues);
+
+
+        logger.finer("Releasing user " + userName);
 
         dynamoDBAsync.updateItem(updateItemRequest);
     }

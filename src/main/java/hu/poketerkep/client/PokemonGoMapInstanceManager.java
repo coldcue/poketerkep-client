@@ -8,6 +8,7 @@ import hu.poketerkep.client.pokemonGoMap.PokemonGoMapConfiguration;
 import hu.poketerkep.client.pokemonGoMap.PokemonGoMapInstance;
 import hu.poketerkep.client.service.LocationConfigDataService;
 import hu.poketerkep.client.service.UserConfigDataService;
+import hu.poketerkep.client.service.UserConfigManagerService;
 import hu.poketerkep.client.tor.TorInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +16,6 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,27 +25,31 @@ import java.util.stream.Collectors;
 
 @Component
 public class PokemonGoMapInstanceManager implements SmartLifecycle {
-    private static final int NUM_USERS = 10;
+    private final UserConfigManagerService userConfigManagerService;
     private final UserConfigDataService userConfigDataService;
     private final LocationConfigDataService locationConfigDataService;
     private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+    // The running state of the Instance Manager
     private boolean running;
+
     private List<PokemonGoMapInstance> pokemonGoMapInstances = new ArrayList<>();
     private List<TorInstance> torInstances = new ArrayList<>();
 
     @Value("${instance-count:3}")
     private int instanceCount;
-
     @Value("${pokemap-threads:3}")
     private int pokemapThreads;
-
     @Value("${use-tor:false}")
     private boolean useTor;
+    @Value("${users-per-instace:10}")
+    private int usersPerInstance;
 
     @Autowired
-    public PokemonGoMapInstanceManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService) {
+    public PokemonGoMapInstanceManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService, UserConfigManagerService userConfigManagerService) {
         this.locationConfigDataService = locationConfigDataService;
         this.userConfigDataService = userConfigDataService;
+        this.userConfigManagerService = userConfigManagerService;
     }
 
     @Override
@@ -67,30 +71,20 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         running = true;
     }
 
+
+    /**
+     * Update last used values for users and locations
+     */
     @Scheduled(fixedRate = 30 * 1000)
     public void updateUserAndLocationLastUsed() {
         logger.info("Updating User and Location last used values...");
         if (isRunning()) {
 
-            long userTime = Instant.now().minusSeconds(800).toEpochMilli();
-
             //Update users
-            List<String> usernamesToUpdate = pokemonGoMapInstances.parallelStream()
-                    .map(PokemonGoMapInstance::getConf)
-                    .map(PokemonGoMapConfiguration::getUsers)
-                    .flatMap(Collection::stream)
-                    .filter(userConfig -> userConfig.getLastUsed() > userTime)
-                    .map(UserConfig::getUserName)
-                    .collect(Collectors.toList());
-
-            usernamesToUpdate.forEach(userConfigDataService::updateUserLastUsed);
-
-            logger.info("- Updated " + usernamesToUpdate.size() + " users!");
+            userConfigManagerService.updateLastUsedTimes(getUserConfigs());
 
             //Update locations
-            pokemonGoMapInstances.parallelStream()
-                    .map(PokemonGoMapInstance::getConf)
-                    .map(PokemonGoMapConfiguration::getLocation)
+            getLocationConfigs().stream()
                     .map(LocationConfig::getLocationId)
                     .forEach(locationConfigDataService::updateLocationLastUsed);
 
@@ -100,26 +94,39 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         }
     }
 
-    private void releaseUsersAndLocations() {
-        logger.info("Releasing Users and Locations");
-        //Update users
-        pokemonGoMapInstances.parallelStream()
+
+    /**
+     * Get the UserConfigs from all the instances
+     *
+     * @return List of UserConfigs
+     */
+    private List<UserConfig> getUserConfigs() {
+        return pokemonGoMapInstances.parallelStream()
                 .map(PokemonGoMapInstance::getConf)
                 .map(PokemonGoMapConfiguration::getUsers)
                 .flatMap(Collection::stream)
-                .map(UserConfig::getUserName)
-                .forEach(userConfigDataService::releaseUser);
-
-        //Update locations
-        pokemonGoMapInstances.parallelStream()
-                .map(PokemonGoMapInstance::getConf)
-                .map(PokemonGoMapConfiguration::getLocation)
-                .map(LocationConfig::getLocationId)
-                .forEach(locationConfigDataService::releaseLocation);
-
-        logger.info("Done!");
+                .collect(Collectors.toList());
     }
 
+    /**
+     * Get the LocationConfigs from all the instances
+     *
+     * @return List of LocationConfigs
+     */
+    private List<LocationConfig> getLocationConfigs() {
+        return pokemonGoMapInstances.parallelStream()
+                .map(PokemonGoMapInstance::getConf)
+                .map(PokemonGoMapConfiguration::getLocation)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Create a PokemonGo Map Instance
+     *
+     * @param id the ID of the instance
+     * @return the instance itself
+     * @throws Exception when something bad happens
+     */
     private PokemonGoMapInstance createInstance(int id) throws Exception {
         PokemonGoMapConfiguration conf = new PokemonGoMapConfiguration();
 
@@ -132,7 +139,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         }
 
         // Set user
-        List<UserConfig> users = userConfigDataService.getUnusedUsers(NUM_USERS);
+        List<UserConfig> users = userConfigDataService.getUnusedUsers(usersPerInstance);
         if (users.size() == 0) {
             throw new Exception("No user found");
         }
@@ -169,9 +176,22 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     @Override
     public void stop() {
         running = false;
+
+        logger.info("Stopping instances...");
         pokemonGoMapInstances.forEach(PokemonGoMapInstance::stop);
+
+        logger.info("Stopping tor instances...");
         torInstances.forEach(torInstance -> torInstance.setStop(true));
-        releaseUsersAndLocations();
+
+        logger.info("Releasing Users and Locations");
+
+        //Release users
+        userConfigManagerService.releaseUsers(getUserConfigs());
+
+        //Release locations
+        getLocationConfigs().stream()
+                .map(LocationConfig::getLocationId)
+                .forEach(locationConfigDataService::releaseLocation);
     }
 
 

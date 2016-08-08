@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  */
 public class PokemonGoMapInstance {
     public static final File DIR = new File("PokemonGo-Map");
-    public static final String RUNSERVER_PY = "runserver.py";
+    private static final String RUNSERVER_PY = "runserver.py";
     private static final String PYTHON = "python";
     private final File logFile;
     private final Logger logger;
@@ -113,7 +113,7 @@ public class PokemonGoMapInstance {
     }
 
     public RawDataJsonDto getRawData() {
-        logger.info("Getting data...");
+        logger.fine("Getting data...");
         RestTemplate restTemplate = new RestTemplate();
         //TODO add error handling
         RawDataJsonDto rawData = new RawDataJsonDto();

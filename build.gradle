@@ -38,5 +38,6 @@ dependencies {
     compile 'commons-codec:commons-codec:1.10'
     compile 'commons-io:commons-io:2.5'
 
+    testCompile 'junit:junit:4.12'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
 }
