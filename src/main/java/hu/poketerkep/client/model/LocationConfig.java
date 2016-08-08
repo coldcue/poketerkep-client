@@ -51,4 +51,15 @@ public class LocationConfig implements LastUsed {
     public void setLastUsed(Long lastUsed) {
         this.lastUsed = lastUsed;
     }
+
+    @Override
+    public String toString() {
+        return "LocationConfig{" +
+                "locationId='" + locationId + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", steps=" + steps +
+                ", lastUsed=" + lastUsed +
+                '}';
+    }
 }

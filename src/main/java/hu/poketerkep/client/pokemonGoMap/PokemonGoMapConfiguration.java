@@ -14,7 +14,6 @@ public class PokemonGoMapConfiguration {
     private List<UserConfig> users;
     private LocationConfig location;
     private String googleMapsKey;
-    private int threads;
     private Optional<Integer> proxyPort = Optional.empty();
 
     public PokemonGoMapConfiguration() {
@@ -49,14 +48,6 @@ public class PokemonGoMapConfiguration {
 
     public void setGoogleMapsKey(String googleMapsKey) {
         this.googleMapsKey = googleMapsKey;
-    }
-
-    public int getThreads() {
-        return threads;
-    }
-
-    public void setThreads(int threads) {
-        this.threads = threads;
     }
 
     public Optional<Integer> getProxyPort() {

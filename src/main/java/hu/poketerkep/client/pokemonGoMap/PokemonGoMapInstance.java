@@ -54,7 +54,7 @@ public class PokemonGoMapInstance {
                 "-st", Integer.toString(conf.getLocation().getSteps()),
                 "-k", conf.getGoogleMapsKey(),
                 "-l", locationString,
-                "-sd", Integer.toString(6),
+                "-sd", Integer.toString(10),
                 "-P", Integer.toString(getPort())
         ));
 

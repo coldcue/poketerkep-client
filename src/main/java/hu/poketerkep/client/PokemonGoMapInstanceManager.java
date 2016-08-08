@@ -1,13 +1,14 @@
 package hu.poketerkep.client;
 
+import hu.poketerkep.client.dataservice.LocationConfigDataService;
+import hu.poketerkep.client.dataservice.UserConfigDataService;
 import hu.poketerkep.client.exception.NoMoreLocationException;
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.model.LocationConfig;
 import hu.poketerkep.client.model.UserConfig;
 import hu.poketerkep.client.pokemonGoMap.PokemonGoMapConfiguration;
 import hu.poketerkep.client.pokemonGoMap.PokemonGoMapInstance;
-import hu.poketerkep.client.service.LocationConfigDataService;
-import hu.poketerkep.client.service.UserConfigDataService;
+import hu.poketerkep.client.service.LocationConfigManagerService;
 import hu.poketerkep.client.service.UserConfigManagerService;
 import hu.poketerkep.client.tor.TorInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,27 +30,24 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     private final UserConfigDataService userConfigDataService;
     private final LocationConfigDataService locationConfigDataService;
     private final Logger logger = Logger.getLogger(this.getClass().getName());
-
+    private final LocationConfigManagerService locationConfigManagerService;
     // The running state of the Instance Manager
     private boolean running;
-
     private List<PokemonGoMapInstance> pokemonGoMapInstances = new ArrayList<>();
     private List<TorInstance> torInstances = new ArrayList<>();
-
     @Value("${instance-count:3}")
     private int instanceCount;
-    @Value("${pokemap-threads:3}")
-    private int pokemapThreads;
     @Value("${use-tor:false}")
     private boolean useTor;
     @Value("${users-per-instace:10}")
     private int usersPerInstance;
 
     @Autowired
-    public PokemonGoMapInstanceManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService, UserConfigManagerService userConfigManagerService) {
+    public PokemonGoMapInstanceManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService, UserConfigManagerService userConfigManagerService, LocationConfigManagerService locationConfigManagerService) {
         this.locationConfigDataService = locationConfigDataService;
         this.userConfigDataService = userConfigDataService;
         this.userConfigManagerService = userConfigManagerService;
+        this.locationConfigManagerService = locationConfigManagerService;
     }
 
     @Override
@@ -84,9 +82,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
             userConfigManagerService.updateLastUsedTimes(getUserConfigs());
 
             //Update locations
-            getLocationConfigs().stream()
-                    .map(LocationConfig::getLocationId)
-                    .forEach(locationConfigDataService::updateLocationLastUsed);
+            locationConfigManagerService.updateLastUsedTimes(getLocationConfigs());
 
             logger.info("Done!");
         } else {
@@ -101,7 +97,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
      * @return List of UserConfigs
      */
     private List<UserConfig> getUserConfigs() {
-        return pokemonGoMapInstances.parallelStream()
+        return pokemonGoMapInstances.stream()
                 .map(PokemonGoMapInstance::getConf)
                 .map(PokemonGoMapConfiguration::getUsers)
                 .flatMap(Collection::stream)
@@ -114,7 +110,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
      * @return List of LocationConfigs
      */
     private List<LocationConfig> getLocationConfigs() {
-        return pokemonGoMapInstances.parallelStream()
+        return pokemonGoMapInstances.stream()
                 .map(PokemonGoMapInstance::getConf)
                 .map(PokemonGoMapConfiguration::getLocation)
                 .collect(Collectors.toList());
@@ -155,13 +151,8 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         //Set google maps key
         conf.setGoogleMapsKey("AIzaSyC4w7rMpg48S8u8eJBiEESCEc6cKj5iTyI");
 
-        //Set threads
-        conf.setThreads(pokemapThreads);
-
-        users.stream()
-                .map(UserConfig::getUserName)
-                .forEach(userConfigDataService::updateUserLastUsed);
-        locationConfigDataService.updateLocationLastUsed(location.getLocationId());
+        userConfigManagerService.updateLastUsedTimes(users);
+        locationConfigManagerService.updateLastUsedTimes(location);
 
         return new PokemonGoMapInstance(conf, id);
     }
@@ -189,9 +180,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         userConfigManagerService.releaseUsers(getUserConfigs());
 
         //Release locations
-        getLocationConfigs().stream()
-                .map(LocationConfig::getLocationId)
-                .forEach(locationConfigDataService::releaseLocation);
+        locationConfigManagerService.releaseLocations(getLocationConfigs());
     }
 
 

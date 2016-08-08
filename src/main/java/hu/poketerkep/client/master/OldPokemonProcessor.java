@@ -1,7 +1,7 @@
 package hu.poketerkep.client.master;
 
 import hu.poketerkep.client.model.Pokemon;
-import hu.poketerkep.client.service.PokemonDataService;
+import hu.poketerkep.client.dataservice.PokemonDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;

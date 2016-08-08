@@ -1,9 +1,9 @@
 package hu.poketerkep.client;
 
+import hu.poketerkep.client.dataservice.PokemonDataService;
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.mapper.PokemonMapper;
 import hu.poketerkep.client.model.Pokemon;
-import hu.poketerkep.client.service.PokemonDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -41,9 +41,9 @@ public class DataProcessor {
         // Get pokemons
         List<Pokemon> pokemons = rawDatas.stream()
                 .filter(rawDataJsonDto -> rawDataJsonDto.getPokemons() != null) // Null check
-                .map(RawDataJsonDto::getPokemons)
+                .map(RawDataJsonDto::getPokemons) // Get pokemons from Raw Data
                 .flatMap(Collection::stream)
-                .map(PokemonMapper::mapFromJsonDto)
+                .map(PokemonMapper::mapFromJsonDto) // Map json dto to model
                 .collect(Collectors.toList());
 
         List<Pokemon> pokemonsToSave = new ArrayList<>();

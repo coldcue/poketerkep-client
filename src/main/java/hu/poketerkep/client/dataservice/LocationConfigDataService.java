@@ -1,4 +1,4 @@
-package hu.poketerkep.client.service;
+package hu.poketerkep.client.dataservice;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -50,15 +50,14 @@ public class LocationConfigDataService {
         return LocationConfigMapper.mapFromDynamoDB(valueMap);
     }
 
-    @SuppressWarnings("Duplicates")
-    public void updateLocationLastUsed(String locationId) {
+    public void updateLocationLastUsed(LocationConfig locationConfig) {
         long now = Instant.now().toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":now", new AttributeValue().withN(Long.toString(now)));
 
         Map<String, AttributeValue> key = new HashMap<>();
-        key.put(LOCATION_CONFIG_KEY, new AttributeValue().withS(locationId));
+        key.put(LOCATION_CONFIG_KEY, new AttributeValue().withS(locationConfig.getLocationId()));
 
         UpdateItemRequest updateItemRequest = new UpdateItemRequest()
                 .withTableName(LOCATION_CONFIG_TABLE)
@@ -66,15 +65,15 @@ public class LocationConfigDataService {
                 .withUpdateExpression("set lastUsed = :now")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
-        dynamoDBAsync.updateItemAsync(updateItemRequest);
+        dynamoDBAsync.updateItem(updateItemRequest);
     }
 
-    public void releaseLocation(String locationId) {
+    public void releaseLocation(LocationConfig locationConfig) {
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":zero", new AttributeValue().withN(Long.toString(0)));
 
         Map<String, AttributeValue> key = new HashMap<>();
-        key.put(LOCATION_CONFIG_KEY, new AttributeValue().withS(locationId));
+        key.put(LOCATION_CONFIG_KEY, new AttributeValue().withS(locationConfig.getLocationId()));
 
         UpdateItemRequest updateItemRequest = new UpdateItemRequest()
                 .withTableName(LOCATION_CONFIG_TABLE)
@@ -82,6 +81,6 @@ public class LocationConfigDataService {
                 .withUpdateExpression("set lastUsed = :zero")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
-        dynamoDBAsync.updateItemAsync(updateItemRequest);
+        dynamoDBAsync.updateItem(updateItemRequest);
     }
 }

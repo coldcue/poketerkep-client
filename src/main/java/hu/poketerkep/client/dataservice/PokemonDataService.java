@@ -1,4 +1,4 @@
-package hu.poketerkep.client.service;
+package hu.poketerkep.client.dataservice;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -35,7 +35,9 @@ public class PokemonDataService {
      * @param pokemons the list of pokemons
      */
     public void putPokemons(List<Pokemon> pokemons) {
-        pokemons.parallelStream().map(PokemonMapper::mapToDynamoDb).forEach(valueMap -> dynamoDBAsync.putItem(POKEMONS_TABLE, valueMap));
+        pokemons.stream()
+                .map(PokemonMapper::mapToDynamoDb)
+                .forEach(valueMap -> dynamoDBAsync.putItemAsync(POKEMONS_TABLE, valueMap));
     }
 
     public List<Pokemon> getOldPokemons() {
@@ -72,7 +74,7 @@ public class PokemonDataService {
                 .withTableName(POKEMONS_TABLE)
                 .withKey(hashKey);
 
-        dynamoDBAsync.deleteItem(deleteItemRequest);
+        dynamoDBAsync.deleteItemAsync(deleteItemRequest);
     }
 
 }

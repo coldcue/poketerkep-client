@@ -1,4 +1,4 @@
-package hu.poketerkep.client.service;
+package hu.poketerkep.client.dataservice;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -57,27 +57,25 @@ public class UserConfigDataService {
                 .collect(Collectors.toList());
     }
 
-    public void updateUserLastUsed(String userName) {
-        long now = Instant.now().toEpochMilli();
-
+    public void updateLastUsed(UserConfig userConfig, long time) {
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(":now", new AttributeValue().withN(Long.toString(now)));
+        expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
 
         Map<String, AttributeValue> key = new HashMap<>();
-        key.put(USER_CONFIG_KEY, new AttributeValue().withS(userName));
+        key.put(USER_CONFIG_KEY, new AttributeValue().withS(userConfig.getUserName()));
 
         UpdateItemRequest updateItemRequest = new UpdateItemRequest()
                 .withTableName(USER_CONFIG_TABLE)
                 .withKey(key)
-                .withUpdateExpression("set lastUsed = :now")
+                .withUpdateExpression("set lastUsed = :time")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
-        logger.finer("Updating last use value for user " + userName + " to " + now);
+        logger.finer("Updating last use value for user " + userConfig.getUserName() + " to " + time);
 
         dynamoDBAsync.updateItem(updateItemRequest);
     }
 
-    void releaseUser(String userName) {
+    public void releaseUser(String userName) {
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":zero", new AttributeValue().withN(String.valueOf(0)));
 

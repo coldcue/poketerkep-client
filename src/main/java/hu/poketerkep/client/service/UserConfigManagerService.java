@@ -1,5 +1,6 @@
 package hu.poketerkep.client.service;
 
+import hu.poketerkep.client.dataservice.UserConfigDataService;
 import hu.poketerkep.client.model.UserConfig;
 import hu.poketerkep.client.model.helpers.LastUsedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +28,13 @@ public class UserConfigManagerService {
         // Go back 800 seconds and compare it with the last used value
         long time = Instant.now().minusSeconds(800).toEpochMilli();
 
+        // Now
+        long now = Instant.now().toEpochMilli();
+
         userConfigs.stream()
-                .filter(userConfig -> LastUsedUtils.isAfter(userConfig, time))
-                .map(UserConfig::getUserName)
-                .forEach(userConfigDataService::updateUserLastUsed);
+                .filter(uc -> LastUsedUtils.isBefore(uc, time)) // Just update the outdated ones
+                .forEach(uc -> userConfigDataService.updateLastUsed(uc, now)); // Update database
+
     }
 
     /**
