@@ -12,7 +12,7 @@ cp -rf PokemonGo-Map/ revision/PokemonGo-Map
 
 echo "Copying poketerkep-client.jar"
 cp -vf build/libs/poketerkep-client-0.1.jar revision/poketerkep-client.jar
-
+git
 echo "Copying codedeploy"
 cp -r codedeploy/* revision/
 
