@@ -29,7 +29,6 @@ public class PokemonGoMapInstance {
     private final File workingDir;
 
     private Process process;
-    private PokemonGoMapInstanceLogReader logReader;
 
     public PokemonGoMapInstance(PokemonGoMapConfiguration conf, int instanceId) {
         this.conf = conf;
@@ -78,17 +77,16 @@ public class PokemonGoMapInstance {
 
         logger.info("Command: " + String.join(" ", command));
 
-        //Check if directory and runnable is present
-        ProcessBuilder processBuilder = new ProcessBuilder(command);
-
-        processBuilder.directory(workingDir);
-        processBuilder.redirectErrorStream(true);
-        processBuilder.redirectOutput(logFile);
 
         try {
-            process = processBuilder.start();
-            logReader = new PokemonGoMapInstanceLogReader(this, process.getInputStream());
-            logReader.start();
+            //Start the process
+            process = new ProcessBuilder(command)
+                    .directory(workingDir)
+                    .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                    .redirectErrorStream(true)
+                    .start();
+
+            new PokemonGoMapInstanceLogReader(this, process).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -147,5 +145,9 @@ public class PokemonGoMapInstance {
 
     public PokemonGoMapConfiguration getConf() {
         return conf;
+    }
+
+    File getLogFile() {
+        return logFile;
     }
 }
