@@ -1,4 +1,4 @@
-package hu.poketerkep.client;
+package hu.poketerkep.client.pokemonGoMap;
 
 import hu.poketerkep.client.dataservice.LocationConfigDataService;
 import hu.poketerkep.client.dataservice.UserConfigDataService;
@@ -6,8 +6,8 @@ import hu.poketerkep.client.exception.NoMoreLocationException;
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.model.LocationConfig;
 import hu.poketerkep.client.model.UserConfig;
-import hu.poketerkep.client.pokemonGoMap.PokemonGoMapConfiguration;
-import hu.poketerkep.client.pokemonGoMap.PokemonGoMapInstance;
+import hu.poketerkep.client.pokemonGoMap.instance.PGMConfiguration;
+import hu.poketerkep.client.pokemonGoMap.instance.PGMInstance;
 import hu.poketerkep.client.service.LocationConfigManagerService;
 import hu.poketerkep.client.service.UserConfigManagerService;
 import hu.poketerkep.client.tor.TorInstance;
@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Component
-public class PokemonGoMapInstanceManager implements SmartLifecycle {
+public class MapManager implements SmartLifecycle {
     private final UserConfigManagerService userConfigManagerService;
     private final UserConfigDataService userConfigDataService;
     private final LocationConfigDataService locationConfigDataService;
@@ -33,7 +33,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     private final LocationConfigManagerService locationConfigManagerService;
     // The running state of the Instance Manager
     private boolean running;
-    private List<PokemonGoMapInstance> pokemonGoMapInstances = new ArrayList<>();
+    private List<PGMInstance> PGMInstances = new ArrayList<>();
     private List<TorInstance> torInstances = new ArrayList<>();
     @Value("${instance-count:3}")
     private int instanceCount;
@@ -43,7 +43,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     private int usersPerInstance;
 
     @Autowired
-    public PokemonGoMapInstanceManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService, UserConfigManagerService userConfigManagerService, LocationConfigManagerService locationConfigManagerService) {
+    public MapManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService, UserConfigManagerService userConfigManagerService, LocationConfigManagerService locationConfigManagerService) {
         this.locationConfigDataService = locationConfigDataService;
         this.userConfigDataService = userConfigDataService;
         this.userConfigManagerService = userConfigManagerService;
@@ -55,9 +55,9 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         // Create instances (TODO intellingent instance creation)
         for (int i = 0; i < instanceCount; i++) {
             try {
-                PokemonGoMapInstance instance = createInstance(i);
+                PGMInstance instance = createInstance(i);
                 instance.start();
-                pokemonGoMapInstances.add(instance);
+                PGMInstances.add(instance);
             } catch (NoMoreLocationException e) {
                 logger.info("No more locations");
                 break;
@@ -97,9 +97,9 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
      * @return List of UserConfigs
      */
     private List<UserConfig> getUserConfigs() {
-        return pokemonGoMapInstances.stream()
-                .map(PokemonGoMapInstance::getConf)
-                .map(PokemonGoMapConfiguration::getUsers)
+        return PGMInstances.stream()
+                .map(PGMInstance::getConf)
+                .map(PGMConfiguration::getUsers)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
@@ -110,9 +110,9 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
      * @return List of LocationConfigs
      */
     private List<LocationConfig> getLocationConfigs() {
-        return pokemonGoMapInstances.stream()
-                .map(PokemonGoMapInstance::getConf)
-                .map(PokemonGoMapConfiguration::getLocation)
+        return PGMInstances.stream()
+                .map(PGMInstance::getConf)
+                .map(PGMConfiguration::getLocation)
                 .collect(Collectors.toList());
     }
 
@@ -123,8 +123,8 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
      * @return the instance itself
      * @throws Exception when something bad happens
      */
-    private PokemonGoMapInstance createInstance(int id) throws Exception {
-        PokemonGoMapConfiguration conf = new PokemonGoMapConfiguration();
+    private PGMInstance createInstance(int id) throws Exception {
+        PGMConfiguration conf = new PGMConfiguration();
 
         // If tor is used
         if (useTor) {
@@ -154,12 +154,12 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         userConfigManagerService.updateLastUsedTimes(users);
         locationConfigManagerService.updateLastUsedTimes(location);
 
-        return new PokemonGoMapInstance(conf, id);
+        return new PGMInstance(this, conf, id);
     }
 
-    List<RawDataJsonDto> getRawData() {
-        return pokemonGoMapInstances.parallelStream()
-                .map(PokemonGoMapInstance::getRawData)
+    public List<RawDataJsonDto> getRawData() {
+        return PGMInstances.parallelStream()
+                .map(PGMInstance::getRawData)
                 .collect(Collectors.toList());
     }
 
@@ -169,7 +169,7 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
         running = false;
 
         logger.info("Stopping instances...");
-        pokemonGoMapInstances.forEach(PokemonGoMapInstance::stop);
+        PGMInstances.forEach(PGMInstance::stop);
 
         logger.info("Stopping tor instances...");
         torInstances.forEach(torInstance -> torInstance.setStop(true));
@@ -205,5 +205,15 @@ public class PokemonGoMapInstanceManager implements SmartLifecycle {
     @Override
     public int getPhase() {
         return 0;
+    }
+
+    /**
+     * When an user account is banned
+     *
+     * @param userConfig
+     */
+    public void onUserBanned(UserConfig userConfig) {
+        logger.warning("User " + userConfig + " was banned");
+        userConfigDataService.setBanned(userConfig);
     }
 }

@@ -1,7 +1,8 @@
-package hu.poketerkep.client.pokemonGoMap;
+package hu.poketerkep.client.pokemonGoMap.instance;
 
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.client.pokemonGoMap.MapManager;
 import hu.poketerkep.client.support.UserConfigHelper;
 import org.apache.commons.io.FileUtils;
 import org.springframework.web.client.RestTemplate;
@@ -18,19 +19,21 @@ import java.util.logging.Logger;
 /**
  * This is a PokemonGoMap instance
  */
-public class PokemonGoMapInstance {
+public class PGMInstance {
     public static final File DIR = new File("PokemonGo-Map");
     private static final String RUNSERVER_PY = "runserver.py";
     private static final String PYTHON = "python";
     private final File logFile;
     private final Logger logger;
-    private final PokemonGoMapConfiguration conf;
+    private final MapManager mapManager;
+    private final PGMConfiguration conf;
     private final int instanceId;
     private final File workingDir;
 
     private Process process;
 
-    public PokemonGoMapInstance(PokemonGoMapConfiguration conf, int instanceId) {
+    public PGMInstance(MapManager mapManager, PGMConfiguration conf, int instanceId) {
+        this.mapManager = mapManager;
         this.conf = conf;
         this.instanceId = instanceId;
 
@@ -86,7 +89,7 @@ public class PokemonGoMapInstance {
                     .redirectErrorStream(true)
                     .start();
 
-            new PokemonGoMapInstanceLogReader(this, process).start();
+            new PGMLogReader(this, process).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -135,19 +138,15 @@ public class PokemonGoMapInstance {
         return 6000 + instanceId;
     }
 
-    public boolean isRunning() {
-        return process != null;
-    }
-
-    public int getInstanceId() {
-        return instanceId;
-    }
-
-    public PokemonGoMapConfiguration getConf() {
+    public PGMConfiguration getConf() {
         return conf;
     }
 
     File getLogFile() {
         return logFile;
+    }
+
+    public MapManager getMapManager() {
+        return mapManager;
     }
 }

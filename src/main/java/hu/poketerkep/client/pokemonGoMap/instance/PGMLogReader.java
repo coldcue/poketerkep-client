@@ -1,4 +1,4 @@
-package hu.poketerkep.client.pokemonGoMap;
+package hu.poketerkep.client.pokemonGoMap.instance;
 
 import hu.poketerkep.client.model.UserConfig;
 
@@ -6,12 +6,12 @@ import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PokemonGoMapInstanceLogReader extends Thread {
+public class PGMLogReader extends Thread {
 
-    private final PokemonGoMapInstance instance;
+    private final PGMInstance instance;
     private final Process process;
 
-    public PokemonGoMapInstanceLogReader(PokemonGoMapInstance instance, Process process) {
+    public PGMLogReader(PGMInstance instance, Process process) {
         this.instance = instance;
         this.process = process;
     }
@@ -19,7 +19,7 @@ public class PokemonGoMapInstanceLogReader extends Thread {
     @Override
     public void run() {
         try {
-            PrintWriter log = new PrintWriter(new FileWriter(instance.getLogFile()));
+            PrintWriter log = new PrintWriter(new FileWriter(instance.getLogFile(), true), true);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;
@@ -46,7 +46,10 @@ public class PokemonGoMapInstanceLogReader extends Thread {
             String message = matcher.group("message");
 
             UserConfig userConfig = getUserConfigFromId(id);
-            System.out.println(userConfig.getUserName() + ": " + message);
+
+            if ("Could not retrieve token: Account is not yet active, please redirect.".equals(message)) {
+                instance.getMapManager().onUserBanned(userConfig);
+            }
         }
     }
 

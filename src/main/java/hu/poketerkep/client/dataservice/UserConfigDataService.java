@@ -38,10 +38,11 @@ public class UserConfigDataService {
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
+        expressionAttributeValues.put(":banned", new AttributeValue().withBOOL(false));
 
         ScanRequest scanRequest = new ScanRequest()
                 .withTableName(USER_CONFIG_TABLE)
-                .withFilterExpression("lastUsed < :time")
+                .withFilterExpression("lastUsed < :time and banned = :banned")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
         ScanResult result = dynamoDBAsync.scan(scanRequest);
@@ -71,6 +72,26 @@ public class UserConfigDataService {
                 .withExpressionAttributeValues(expressionAttributeValues);
 
         logger.finer("Updating last use value for user " + userConfig.getUserName() + " to " + time);
+
+        dynamoDBAsync.updateItem(updateItemRequest);
+    }
+
+    public void setBanned(UserConfig userConfig) {
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":banned", new AttributeValue().withBOOL(true));
+
+
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(USER_CONFIG_KEY, new AttributeValue().withS(userConfig.getUserName()));
+
+        UpdateItemRequest updateItemRequest = new UpdateItemRequest()
+                .withTableName(USER_CONFIG_TABLE)
+                .withKey(key)
+                .withUpdateExpression("set banned = :banned")
+                .withExpressionAttributeValues(expressionAttributeValues);
+
+
+        logger.finer("Banning user " + userConfig.getUserName());
 
         dynamoDBAsync.updateItem(updateItemRequest);
     }

@@ -4,6 +4,7 @@ import hu.poketerkep.client.dataservice.PokemonDataService;
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.mapper.PokemonMapper;
 import hu.poketerkep.client.model.Pokemon;
+import hu.poketerkep.client.pokemonGoMap.MapManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -20,12 +21,12 @@ import java.util.stream.Collectors;
 @Component
 public class DataProcessor {
     private final PokemonDataService pokemonDataService;
-    private final PokemonGoMapInstanceManager instanceManager;
+    private final MapManager instanceManager;
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private List<Pokemon> lastPokemons = new ArrayList<>();
 
     @Autowired
-    public DataProcessor(PokemonDataService pokemonDataService, PokemonGoMapInstanceManager instanceManager) {
+    public DataProcessor(PokemonDataService pokemonDataService, MapManager instanceManager) {
         this.pokemonDataService = pokemonDataService;
         this.instanceManager = instanceManager;
     }
