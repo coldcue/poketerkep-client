@@ -1,6 +1,7 @@
 package hu.poketerkep.client.pokemonGoMap.instance;
 
 
+import hu.poketerkep.client.config.Constants;
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.model.AllData;
 
@@ -36,9 +37,9 @@ public class PGMInstanceHealthAnalyzer {
         if (pokemonCount == 0
                 && pokestopCount == 0
                 && gymCount == 0
-                && isRunningFor(2, ChronoUnit.MINUTES)) {
+                && isRunningFor(Constants.NO_POKEMON_GRACE_PERIOD, ChronoUnit.MINUTES)) {
 
-            log.warning("There were no data from this instance for 2 minutes");
+            log.warning("There were no data from this instance for " + Constants.NO_POKEMON_GRACE_PERIOD + " minutes");
 
             // Stop the instance
             shouldBeStopped = true;
@@ -52,10 +53,13 @@ public class PGMInstanceHealthAnalyzer {
         }
         // If there were pokemons, decrease the no data rivers if its not 0
         else if (noDataRivers > 0) {
-            noDataRivers--;
+            noDataRivers =
+                    (noDataRivers - Constants.NEW_DATA_RIVERS_MINUS <= 0)
+                            ? 0
+                            : noDataRivers - Constants.NEW_DATA_RIVERS_MINUS;
         }
 
-        if (noDataRivers >= 10) {
+        if (noDataRivers >= Constants.NEW_DATA_RIVERS_MAX) {
             log.warning("There were too few pokemons from this instance");
 
             shouldBeStopped = true;

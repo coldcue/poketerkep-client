@@ -36,6 +36,7 @@ public class PGMInstance {
     private final String instanceName;
     private Process process;
     private AllData oldAllData;
+
     public PGMInstance(MapManager mapManager, PGMConfiguration conf, int instanceId) {
         this.mapManager = mapManager;
         this.conf = conf;
@@ -135,7 +136,7 @@ public class PGMInstance {
     private RawDataJsonDto getRawData() {
         logger.fine("Getting data...");
         RestTemplate restTemplate = new RestTemplate();
-        //TODO add error handling
+
         RawDataJsonDto rawData = new RawDataJsonDto();
         try {
             rawData = restTemplate.getForObject("http://localhost:" + getPort() + "/raw_data?pokemon=true&pokestops=true&gyms=true&scanned=true", RawDataJsonDto.class);

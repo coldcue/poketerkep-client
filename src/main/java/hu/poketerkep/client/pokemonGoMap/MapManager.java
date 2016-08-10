@@ -3,6 +3,7 @@ package hu.poketerkep.client.pokemonGoMap;
 import hu.poketerkep.client.dataservice.LocationConfigDataService;
 import hu.poketerkep.client.dataservice.UserConfigDataService;
 import hu.poketerkep.client.exception.NoMoreLocationException;
+import hu.poketerkep.client.exception.NoMoreUsersException;
 import hu.poketerkep.client.model.AllData;
 import hu.poketerkep.client.model.LocationConfig;
 import hu.poketerkep.client.model.UserConfig;
@@ -17,6 +18,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -85,9 +87,12 @@ public class MapManager implements SmartLifecycle {
             int emptySlots = instanceCount - pgmInstances.size();
             for (int i = 0; i < emptySlots; i++) {
                 try {
-                    createInstance(i);
+                    createInstance();
                 } catch (NoMoreLocationException e) {
                     log.fine("No more locations");
+                    break;
+                } catch (NoMoreUsersException e) {
+                    log.warning("No more users");
                     break;
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -142,12 +147,27 @@ public class MapManager implements SmartLifecycle {
     /**
      * Create a PokemonGo Map Instance
      *
-     * @param id the ID of the instance
      * @return the instance itself
-     * @throws Exception when something bad happens
      */
-    private PGMInstance createInstance(int id) throws Exception {
+    private PGMInstance createInstance() throws NoMoreUsersException, NoMoreLocationException, IOException {
         PGMConfiguration conf = new PGMConfiguration();
+
+        // Set location
+        LocationConfig location = locationConfigDataService.getUnusedLocation();
+        if (location == null) {
+            throw new NoMoreLocationException();
+        }
+        conf.setLocation(location);
+
+        // Set user
+        List<UserConfig> users = userConfigDataService.getUnusedUsers(usersPerInstance);
+        if (users.size() == 0) {
+            throw new NoMoreUsersException();
+        }
+        conf.setUsers(users);
+
+        //Generate instance Id
+        int id = generateUniqueInstanceId();
 
         // If tor is used
         if (useTor) {
@@ -156,20 +176,6 @@ public class MapManager implements SmartLifecycle {
             conf.setProxyPort(Optional.of(torInstance.getProxyPort()));
             torInstances.add(torInstance);
         }
-
-        // Set user
-        List<UserConfig> users = userConfigDataService.getUnusedUsers(usersPerInstance);
-        if (users.size() == 0) {
-            throw new Exception("No user found");
-        }
-        conf.setUsers(users);
-
-        // Set location
-        LocationConfig location = locationConfigDataService.getUnusedLocation();
-        if (location == null) {
-            throw new NoMoreLocationException();
-        }
-        conf.setLocation(location);
 
         //Set google maps key
         conf.setGoogleMapsKey("AIzaSyC4w7rMpg48S8u8eJBiEESCEc6cKj5iTyI");
@@ -284,5 +290,20 @@ public class MapManager implements SmartLifecycle {
             log.warning("User " + userConfig.getUserName() + " was banned");
             userConfigDataService.setBanned(userConfig);
         }
+    }
+
+    private int generateUniqueInstanceId() {
+        List<Integer> instanceIds = pgmInstances.stream()
+                .mapToInt(PGMInstance::getInstanceId)
+                .boxed()
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < 1024; i++) {
+            if (!instanceIds.contains(i)) {
+                return i;
+            }
+        }
+
+        throw new RuntimeException("More than 1024 instances are not supported");
     }
 }

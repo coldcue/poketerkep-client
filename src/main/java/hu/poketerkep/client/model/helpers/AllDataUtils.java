@@ -7,6 +7,9 @@ import hu.poketerkep.client.model.Pokemon;
 public class AllDataUtils {
     public static AllData getNew(AllData oldAllData, AllData newAllData) {
 
+        // If there were no old data
+        if (oldAllData == null) return newAllData;
+
         AllData result = new AllData();
 
         for (Pokemon newPokemon : newAllData.getPokemons()) {
