@@ -65,7 +65,8 @@ public class LocationConfigDataService {
                 .withUpdateExpression("set lastUsed = :now")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
-        dynamoDBAsync.updateItem(updateItemRequest);
+        locationConfig.setLastUsed(now);
+        dynamoDBAsync.updateItemAsync(updateItemRequest);
     }
 
     public void releaseLocation(LocationConfig locationConfig) {
@@ -81,6 +82,7 @@ public class LocationConfigDataService {
                 .withUpdateExpression("set lastUsed = :zero")
                 .withExpressionAttributeValues(expressionAttributeValues);
 
+        locationConfig.setLastUsed(0L);
         dynamoDBAsync.updateItem(updateItemRequest);
     }
 }

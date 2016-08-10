@@ -213,7 +213,9 @@ public class MapManager implements SmartLifecycle {
      * @param userConfig
      */
     public void onUserBanned(UserConfig userConfig) {
-        logger.warning("User " + userConfig + " was banned");
-        userConfigDataService.setBanned(userConfig);
+        if (!userConfig.getBanned()) {
+            logger.warning("User " + userConfig.getUserName() + " was banned");
+            userConfigDataService.setBanned(userConfig);
+        }
     }
 }

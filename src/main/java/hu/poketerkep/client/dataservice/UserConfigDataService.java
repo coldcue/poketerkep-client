@@ -72,8 +72,8 @@ public class UserConfigDataService {
                 .withExpressionAttributeValues(expressionAttributeValues);
 
         logger.finer("Updating last use value for user " + userConfig.getUserName() + " to " + time);
-
-        dynamoDBAsync.updateItem(updateItemRequest);
+        userConfig.setLastUsed(time);
+        dynamoDBAsync.updateItemAsync(updateItemRequest);
     }
 
     public void setBanned(UserConfig userConfig) {
@@ -92,7 +92,7 @@ public class UserConfigDataService {
 
 
         logger.finer("Banning user " + userConfig.getUserName());
-
+        userConfig.setBanned(true);
         dynamoDBAsync.updateItem(updateItemRequest);
     }
 
