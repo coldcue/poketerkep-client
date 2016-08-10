@@ -4,19 +4,20 @@ package hu.poketerkep.client.json;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RawDataJsonDto {
     @JsonProperty(required = true)
-    private List<GymJsonDto> gyms;
+    private List<GymJsonDto> gyms = new ArrayList<>();
     @JsonProperty(required = true)
-    private List<PokemonJsonDto> pokemons;
+    private List<PokemonJsonDto> pokemons = new ArrayList<>();
     @JsonProperty(required = true)
-    private List<PokestopJsonDto> pokestops;
+    private List<PokestopJsonDto> pokestops = new ArrayList<>();
     @JsonProperty(required = true)
-    private List<ScannedJsonDto> scanned;
+    private List<ScannedJsonDto> scanned = new ArrayList<>();
 
     public List<GymJsonDto> getGyms() {
         return gyms;

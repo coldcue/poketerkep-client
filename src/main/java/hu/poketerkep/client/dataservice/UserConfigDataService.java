@@ -5,6 +5,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
+import hu.poketerkep.client.config.Constants;
 import hu.poketerkep.client.mapper.UserConfigMapper;
 import hu.poketerkep.client.model.UserConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class UserConfigDataService {
 
     public List<UserConfig> getUnusedUsers(int num) {
         // Now -900 sec
-        long time = Instant.now().minusSeconds(900).toEpochMilli();
+        long time = Instant.now().minusSeconds(Constants.UNUSED_USER_TIME).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
@@ -58,7 +59,9 @@ public class UserConfigDataService {
                 .collect(Collectors.toList());
     }
 
-    public void updateLastUsed(UserConfig userConfig, long time) {
+    public void updateLastUsed(UserConfig userConfig) {
+        long time = Instant.now().toEpochMilli();
+
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
 

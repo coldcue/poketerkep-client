@@ -5,6 +5,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
+import hu.poketerkep.client.config.Constants;
 import hu.poketerkep.client.mapper.LocationConfigMapper;
 import hu.poketerkep.client.model.LocationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,7 @@ public class LocationConfigDataService {
     }
 
     public LocationConfig getUnusedLocation() {
-        // Now +90 sec
-        long time = Instant.now().minusSeconds(90).toEpochMilli();
+        long time = Instant.now().minusSeconds(Constants.UNUSED_LOCATION_TIME).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));

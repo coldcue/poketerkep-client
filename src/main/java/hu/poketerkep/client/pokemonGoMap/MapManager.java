@@ -3,7 +3,7 @@ package hu.poketerkep.client.pokemonGoMap;
 import hu.poketerkep.client.dataservice.LocationConfigDataService;
 import hu.poketerkep.client.dataservice.UserConfigDataService;
 import hu.poketerkep.client.exception.NoMoreLocationException;
-import hu.poketerkep.client.json.RawDataJsonDto;
+import hu.poketerkep.client.model.AllData;
 import hu.poketerkep.client.model.LocationConfig;
 import hu.poketerkep.client.model.UserConfig;
 import hu.poketerkep.client.pokemonGoMap.instance.PGMConfiguration;
@@ -17,10 +17,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -29,12 +26,12 @@ public class MapManager implements SmartLifecycle {
     private final UserConfigManagerService userConfigManagerService;
     private final UserConfigDataService userConfigDataService;
     private final LocationConfigDataService locationConfigDataService;
-    private final Logger logger = Logger.getLogger(this.getClass().getName());
+    private final Logger log = Logger.getLogger(this.getClass().getName());
     private final LocationConfigManagerService locationConfigManagerService;
     // The running state of the Instance Manager
     private boolean running;
-    private List<PGMInstance> PGMInstances = new ArrayList<>();
-    private List<TorInstance> torInstances = new ArrayList<>();
+    private HashSet<PGMInstance> pgmInstances = new HashSet<>();
+    private HashSet<TorInstance> torInstances = new HashSet<>();
     @Value("${instance-count:3}")
     private int instanceCount;
     @Value("${use-tor:false}")
@@ -52,20 +49,6 @@ public class MapManager implements SmartLifecycle {
 
     @Override
     public void start() {
-        // Create instances (TODO intellingent instance creation)
-        for (int i = 0; i < instanceCount; i++) {
-            try {
-                PGMInstance instance = createInstance(i);
-                instance.start();
-                PGMInstances.add(instance);
-            } catch (NoMoreLocationException e) {
-                logger.info("No more locations");
-                break;
-            } catch (Exception e) {
-                e.printStackTrace();
-
-            }
-        }
         running = true;
     }
 
@@ -75,7 +58,7 @@ public class MapManager implements SmartLifecycle {
      */
     @Scheduled(fixedRate = 30 * 1000)
     public void updateUserAndLocationLastUsed() {
-        logger.info("Updating User and Location last used values...");
+        log.info("Updating User and Location last used values...");
         if (isRunning()) {
 
             //Update users
@@ -84,9 +67,49 @@ public class MapManager implements SmartLifecycle {
             //Update locations
             locationConfigManagerService.updateLastUsedTimes(getLocationConfigs());
 
-            logger.info("Done!");
+            log.info("Done!");
         } else {
-            logger.warning("No instances running!");
+            log.warning("No instances running!");
+        }
+    }
+
+    /**
+     * Check if there are new locations available
+     */
+    @Scheduled(fixedRate = 15 * 1000, initialDelay = 0)
+    public void checkLocations() {
+        log.info("Checking locations");
+        if (isRunning()) {
+
+            // Fill empty slots
+            int emptySlots = instanceCount - pgmInstances.size();
+            for (int i = 0; i < emptySlots; i++) {
+                try {
+                    createInstance(i);
+                } catch (NoMoreLocationException e) {
+                    log.fine("No more locations");
+                    break;
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                }
+            }
+        }
+    }
+
+    /**
+     * Check which instances should be stopped
+     */
+    @Scheduled(fixedRate = 5 * 1000, initialDelay = 0)
+    public void checkInstances() {
+        log.fine("Checking instances");
+        if (isRunning()) {
+
+            // Stop instances that should be stopped (with concurrency)
+            new ArrayList<>(pgmInstances).stream()
+                    .filter(pgmInstance -> pgmInstance.getHealthAnalyzer().isShouldBeStopped())
+                    .forEach(this::stopInstance);
+
         }
     }
 
@@ -97,7 +120,7 @@ public class MapManager implements SmartLifecycle {
      * @return List of UserConfigs
      */
     private List<UserConfig> getUserConfigs() {
-        return PGMInstances.stream()
+        return pgmInstances.stream()
                 .map(PGMInstance::getConf)
                 .map(PGMConfiguration::getUsers)
                 .flatMap(Collection::stream)
@@ -110,7 +133,7 @@ public class MapManager implements SmartLifecycle {
      * @return List of LocationConfigs
      */
     private List<LocationConfig> getLocationConfigs() {
-        return PGMInstances.stream()
+        return pgmInstances.stream()
                 .map(PGMInstance::getConf)
                 .map(PGMConfiguration::getLocation)
                 .collect(Collectors.toList());
@@ -154,27 +177,71 @@ public class MapManager implements SmartLifecycle {
         userConfigManagerService.updateLastUsedTimes(users);
         locationConfigManagerService.updateLastUsedTimes(location);
 
-        return new PGMInstance(this, conf, id);
+        PGMInstance pgmInstance = new PGMInstance(this, conf, id);
+
+        pgmInstance.start();
+        pgmInstances.add(pgmInstance);
+
+        return pgmInstance;
     }
 
-    public List<RawDataJsonDto> getRawData() {
-        return PGMInstances.parallelStream()
-                .map(PGMInstance::getRawData)
+    /**
+     * Get All data from all the instances
+     *
+     * @return the raw data
+     */
+    public List<AllData> getNewAllDataList() {
+        return pgmInstances.stream()
+                .map(PGMInstance::getNewAllData)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Stops an instance
+     *
+     * @param pgmInstance the instance
+     */
+    private void stopInstance(PGMInstance pgmInstance) {
 
+        log.info("Stopping instace: " + pgmInstance.getInstanceName());
+
+        // Stop tor
+        if (useTor) {
+            int instanceId = pgmInstance.getInstanceId();
+            Optional<TorInstance> torInstanceOptional = torInstances.stream()
+                    .filter(ti -> ti.getTorId() == instanceId).findFirst();
+
+            if (torInstanceOptional.isPresent()) {
+                TorInstance torInstance = torInstanceOptional.get();
+                torInstance.setStop(true);
+                torInstances.remove(torInstance);
+            }
+        }
+
+        // Stop the pgmInstance
+        pgmInstance.stop();
+
+        // Release users and locations
+        userConfigManagerService.releaseUsers(pgmInstance.getConf().getUsers());
+        locationConfigManagerService.releaseLocation(pgmInstance.getConf().getLocation());
+
+        pgmInstances.remove(pgmInstance);
+    }
+
+    /**
+     * When the application stops, stop everything
+     */
     @Override
     public void stop() {
         running = false;
 
-        logger.info("Stopping instances...");
-        PGMInstances.forEach(PGMInstance::stop);
+        log.info("Stopping instances...");
+        pgmInstances.forEach(PGMInstance::stop);
 
-        logger.info("Stopping tor instances...");
+        log.info("Stopping tor instances...");
         torInstances.forEach(torInstance -> torInstance.setStop(true));
 
-        logger.info("Releasing Users and Locations");
+        log.info("Releasing Users and Locations");
 
         //Release users
         userConfigManagerService.releaseUsers(getUserConfigs());
@@ -214,7 +281,7 @@ public class MapManager implements SmartLifecycle {
      */
     public void onUserBanned(UserConfig userConfig) {
         if (!userConfig.getBanned()) {
-            logger.warning("User " + userConfig.getUserName() + " was banned");
+            log.warning("User " + userConfig.getUserName() + " was banned");
             userConfigDataService.setBanned(userConfig);
         }
     }

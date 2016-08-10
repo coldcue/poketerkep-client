@@ -1,8 +1,7 @@
 package hu.poketerkep.client;
 
 import hu.poketerkep.client.dataservice.PokemonDataService;
-import hu.poketerkep.client.json.RawDataJsonDto;
-import hu.poketerkep.client.mapper.PokemonMapper;
+import hu.poketerkep.client.model.AllData;
 import hu.poketerkep.client.model.Pokemon;
 import hu.poketerkep.client.pokemonGoMap.MapManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,6 @@ public class DataProcessor {
     private final PokemonDataService pokemonDataService;
     private final MapManager instanceManager;
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    private List<Pokemon> lastPokemons = new ArrayList<>();
 
     @Autowired
     public DataProcessor(PokemonDataService pokemonDataService, MapManager instanceManager) {
@@ -34,46 +32,24 @@ public class DataProcessor {
     @Scheduled(fixedDelay = 5 * 1000, initialDelay = 10 * 1000)
     public void processData() {
         logger.info("Fetching data...");
-        List<RawDataJsonDto> rawDatas = instanceManager.getRawData();
+        List<AllData> allDataList = instanceManager.getNewAllDataList();
 
         logger.info("Processing data...");
 
-
         // Get pokemons
-        List<Pokemon> pokemons = rawDatas.stream()
-                .filter(rawDataJsonDto -> rawDataJsonDto.getPokemons() != null) // Null check
-                .map(RawDataJsonDto::getPokemons) // Get pokemons from Raw Data
+        List<Pokemon> pokemons = allDataList.stream()
+                .filter(allData -> allData.getPokemons() != null) // Null check
+                .map(AllData::getPokemons) // Get pokemons from All data
                 .flatMap(Collection::stream)
-                .map(PokemonMapper::mapFromJsonDto) // Map json dto to model
                 .collect(Collectors.toList());
 
-        List<Pokemon> pokemonsToSave = new ArrayList<>();
 
-        for (Pokemon p1 : pokemons) {
-            // Lets see if the pokemon is in the last pokemons
-            boolean found = false;
-            for (Pokemon p2 : lastPokemons) {
-                if (p1.getEncounterId().equals(p2.getEncounterId())) {
-                    found = true;
-                    break;
-                }
-            }
-
-            // If its not in the last pokemons, then it is a new pokemon
-            if (!found) {
-                pokemonsToSave.add(p1);
-            }
-        }
-
-        if (pokemonsToSave.size() > 0) {
-            logger.info("Saving " + pokemonsToSave.size() + " new pokemons");
-            pokemonDataService.putPokemons(pokemonsToSave);
+        if (pokemons.size() > 0) {
+            logger.info("Saving " + pokemons.size() + " new pokemons");
+            pokemonDataService.putPokemons(new ArrayList<>(pokemons));
         } else {
             logger.info("No pokemons to save.");
         }
-
-        //Set the last pokemons to the new pokemons (this must be here, because of exceptions)
-        lastPokemons = pokemons;
 
         logger.info("Done");
     }

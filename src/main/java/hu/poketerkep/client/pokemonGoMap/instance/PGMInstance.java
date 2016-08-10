@@ -1,7 +1,10 @@
 package hu.poketerkep.client.pokemonGoMap.instance;
 
 import hu.poketerkep.client.json.RawDataJsonDto;
+import hu.poketerkep.client.mapper.RawDataToAllDataMapper;
+import hu.poketerkep.client.model.AllData;
 import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.client.model.helpers.AllDataUtils;
 import hu.poketerkep.client.pokemonGoMap.MapManager;
 import hu.poketerkep.client.support.UserConfigHelper;
 import org.apache.commons.io.FileUtils;
@@ -29,18 +32,32 @@ public class PGMInstance {
     private final PGMConfiguration conf;
     private final int instanceId;
     private final File workingDir;
-
+    private final PGMInstanceHealthAnalyzer healthAnalyzer;
+    private final String instanceName;
     private Process process;
-
+    private AllData oldAllData;
     public PGMInstance(MapManager mapManager, PGMConfiguration conf, int instanceId) {
         this.mapManager = mapManager;
         this.conf = conf;
         this.instanceId = instanceId;
 
-        String instanceName = "PGM-Instance-" + conf.getLocation().getLocationId();
+        instanceName = "PGM-Instance-" + conf.getLocation().getLocationId();
         logger = Logger.getLogger(instanceName);
         logFile = new File("instances/" + instanceName + ".log");
         workingDir = new File("instances/" + instanceName);
+        healthAnalyzer = new PGMInstanceHealthAnalyzer(this);
+    }
+
+    public PGMInstanceHealthAnalyzer getHealthAnalyzer() {
+        return healthAnalyzer;
+    }
+
+    public String getInstanceName() {
+        return instanceName;
+    }
+
+    public int getInstanceId() {
+        return instanceId;
     }
 
     public void start() throws IOException {
@@ -115,7 +132,7 @@ public class PGMInstance {
         }
     }
 
-    public RawDataJsonDto getRawData() {
+    private RawDataJsonDto getRawData() {
         logger.fine("Getting data...");
         RestTemplate restTemplate = new RestTemplate();
         //TODO add error handling
@@ -130,8 +147,28 @@ public class PGMInstance {
             logger.severe("Map does not answer!");
         }
 
+        // Send raw data to health analysis
+        healthAnalyzer.analyzeRawData(rawData);
 
         return rawData;
+    }
+
+
+    private AllData getAllData() {
+        RawDataJsonDto rawData = getRawData();
+        return RawDataToAllDataMapper.fromRawData(rawData);
+    }
+
+    public AllData getNewAllData() {
+        AllData allData = getAllData();
+        AllData newAllData = AllDataUtils.getNew(oldAllData, allData);
+
+        oldAllData = allData;
+
+        // Send new data for health analysis
+        healthAnalyzer.analyzeNewData(newAllData);
+
+        return newAllData;
     }
 
     private int getPort() {
