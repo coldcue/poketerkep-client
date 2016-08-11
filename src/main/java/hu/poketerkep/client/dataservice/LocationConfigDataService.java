@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class LocationConfigDataService {
@@ -27,8 +29,8 @@ public class LocationConfigDataService {
         this.dynamoDBAsync = dynamoDBAsync;
     }
 
-    public LocationConfig getUnusedLocation() {
-        long time = Instant.now().minusSeconds(Constants.UNUSED_LOCATION_TIME).toEpochMilli();
+    public List<LocationConfig> getUnusedLocations() {
+        long time = Instant.now().minusSeconds(Constants.UNUSED_LOCATION_TIME_SECONDS - 30).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
@@ -45,9 +47,11 @@ public class LocationConfigDataService {
             return null;
         }
 
-        // Get the first
-        Map<String, AttributeValue> valueMap = result.getItems().get(0);
-        return LocationConfigMapper.mapFromDynamoDB(valueMap);
+        // Get the list
+        return result.getItems().stream()
+                .limit(10)
+                .map(LocationConfigMapper::mapFromDynamoDB)
+                .collect(Collectors.toList());
     }
 
     public void updateLocationLastUsed(LocationConfig locationConfig) {

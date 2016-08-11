@@ -97,7 +97,7 @@ public class TorInstance extends Thread {
                         rateLimitDelay = System.currentTimeMillis() + Long.parseLong(matcher.group(1)) * 1000;
                     }
 
-                    logger.info(msg);
+                    logger.fine(msg);
                 } catch (Exception e) {
                     //e.printStackTrace();
                 }

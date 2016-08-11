@@ -1,6 +1,5 @@
 package hu.poketerkep.client.service;
 
-import hu.poketerkep.client.config.Constants;
 import hu.poketerkep.client.dataservice.UserConfigDataService;
 import hu.poketerkep.client.model.UserConfig;
 import hu.poketerkep.client.model.helpers.LastUsedUtils;
@@ -27,7 +26,7 @@ public class UserConfigManagerService {
      */
     public void updateLastUsedTimes(List<UserConfig> userConfigs) {
         // Go back  seconds and compare it with the last used value
-        long time = Instant.now().minusSeconds(Constants.UNUSED_USER_UPDATE_TIME).toEpochMilli();
+        long time = Instant.now().toEpochMilli();
 
         userConfigs.stream()
                 .filter(uc -> LastUsedUtils.isBefore(uc, time)) // Just update the outdated ones

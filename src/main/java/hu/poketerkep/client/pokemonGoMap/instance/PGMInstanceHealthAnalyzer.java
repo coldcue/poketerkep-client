@@ -78,7 +78,7 @@ public class PGMInstanceHealthAnalyzer {
         int userCount = pgmInstance.getConf().getUsers().size();
         int remainingUsers = userCount - bannedCount;
 
-        if (remainingUsers < 8) {
+        if (remainingUsers < 10) {
             log.warning("Too much banned users in the instance");
             stopInstance();
         }

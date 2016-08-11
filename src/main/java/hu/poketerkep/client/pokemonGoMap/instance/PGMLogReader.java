@@ -10,6 +10,7 @@ class PGMLogReader extends Thread {
 
     private final PGMInstance instance;
     private final Process process;
+    private BufferedReader bufferedReader;
 
     PGMLogReader(PGMInstance instance, Process process) {
         this.instance = instance;
@@ -20,7 +21,7 @@ class PGMLogReader extends Thread {
     public void run() {
         try {
             PrintWriter log = new PrintWriter(new FileWriter(instance.getLogFile(), true), true);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;
             while ((line = bufferedReader.readLine()) != null && !isInterrupted()) {
@@ -62,5 +63,9 @@ class PGMLogReader extends Thread {
      */
     private UserConfig getUserConfigFromId(int id) {
         return instance.getConf().getUsers().get(id);
+    }
+
+    public void terminate() {
+        this.interrupt();
     }
 }

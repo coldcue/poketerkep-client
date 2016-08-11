@@ -36,6 +36,7 @@ public class PGMInstance {
     private final String instanceName;
     private Process process;
     private AllData oldAllData;
+    private PGMLogReader pgmLogReader;
 
     public PGMInstance(MapManager mapManager, PGMConfiguration conf, int instanceId) {
         this.mapManager = mapManager;
@@ -106,7 +107,7 @@ public class PGMInstance {
                     .redirectErrorStream(true)
                     .start();
 
-            PGMLogReader pgmLogReader = new PGMLogReader(this, process);
+            pgmLogReader = new PGMLogReader(this, process);
             pgmLogReader.start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -117,10 +118,15 @@ public class PGMInstance {
     public void stop() {
         logger.info("Stopping instance...");
         if (process != null) {
+            pgmLogReader.terminate();
             process.destroy();
+
             try {
-                process.waitFor(10, TimeUnit.SECONDS);
-                process = null;
+                process.waitFor(1, TimeUnit.SECONDS);
+                if (process.isAlive()) {
+                    process.destroyForcibly();
+                    Thread.sleep(500);
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

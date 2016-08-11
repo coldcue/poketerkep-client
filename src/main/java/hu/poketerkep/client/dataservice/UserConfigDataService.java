@@ -35,7 +35,7 @@ public class UserConfigDataService {
 
     public List<UserConfig> getUnusedUsers(int num) {
         // Now -900 sec
-        long time = Instant.now().minusSeconds(Constants.UNUSED_USER_TIME).toEpochMilli();
+        long time = Instant.now().minusSeconds(Constants.UNUSED_USER_TIME_SECONDS - 30).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));

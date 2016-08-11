@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 public class MapManager implements SmartLifecycle {
     private final UserConfigManagerService userConfigManagerService;
     private final UserConfigDataService userConfigDataService;
-    private final LocationConfigDataService locationConfigDataService;
     private final Logger log = Logger.getLogger(this.getClass().getName());
     private final LocationConfigManagerService locationConfigManagerService;
     // The running state of the Instance Manager
@@ -38,12 +37,11 @@ public class MapManager implements SmartLifecycle {
     private int instanceCount;
     @Value("${use-tor:false}")
     private boolean useTor;
-    @Value("${users-per-instace:10}")
+    @Value("${users-per-instace:15}")
     private int usersPerInstance;
 
     @Autowired
     public MapManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService, UserConfigManagerService userConfigManagerService, LocationConfigManagerService locationConfigManagerService) {
-        this.locationConfigDataService = locationConfigDataService;
         this.userConfigDataService = userConfigDataService;
         this.userConfigManagerService = userConfigManagerService;
         this.locationConfigManagerService = locationConfigManagerService;
@@ -153,7 +151,7 @@ public class MapManager implements SmartLifecycle {
         PGMConfiguration conf = new PGMConfiguration();
 
         // Set location
-        LocationConfig location = locationConfigDataService.getUnusedLocation();
+        LocationConfig location = locationConfigManagerService.getUnusedLocation(new ArrayList<>(getLocationConfigs()));
         if (location == null) {
             throw new NoMoreLocationException();
         }
