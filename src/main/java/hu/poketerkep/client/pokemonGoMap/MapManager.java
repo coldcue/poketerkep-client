@@ -1,6 +1,5 @@
 package hu.poketerkep.client.pokemonGoMap;
 
-import hu.poketerkep.client.dataservice.LocationConfigDataService;
 import hu.poketerkep.client.dataservice.UserConfigDataService;
 import hu.poketerkep.client.exception.NoMoreLocationException;
 import hu.poketerkep.client.exception.NoMoreUsersException;
@@ -41,7 +40,7 @@ public class MapManager implements SmartLifecycle {
     private int usersPerInstance;
 
     @Autowired
-    public MapManager(LocationConfigDataService locationConfigDataService, UserConfigDataService userConfigDataService, UserConfigManagerService userConfigManagerService, LocationConfigManagerService locationConfigManagerService) {
+    public MapManager(UserConfigDataService userConfigDataService, UserConfigManagerService userConfigManagerService, LocationConfigManagerService locationConfigManagerService) {
         this.userConfigDataService = userConfigDataService;
         this.userConfigManagerService = userConfigManagerService;
         this.locationConfigManagerService = locationConfigManagerService;
@@ -151,10 +150,12 @@ public class MapManager implements SmartLifecycle {
         PGMConfiguration conf = new PGMConfiguration();
 
         // Set location
-        LocationConfig location = locationConfigManagerService.getUnusedLocation(new ArrayList<>(getLocationConfigs()));
-        if (location == null) {
+        Optional<LocationConfig> optionalLocation = locationConfigManagerService.getUnusedLocation(new ArrayList<>(getLocationConfigs()));
+        if (!optionalLocation.isPresent()) {
             throw new NoMoreLocationException();
         }
+
+        LocationConfig location = optionalLocation.get();
         conf.setLocation(location);
 
         // Set user
@@ -178,8 +179,8 @@ public class MapManager implements SmartLifecycle {
         //Set google maps key
         conf.setGoogleMapsKey("AIzaSyC4w7rMpg48S8u8eJBiEESCEc6cKj5iTyI");
 
-        userConfigManagerService.updateLastUsedTimes(users);
-        locationConfigManagerService.updateLastUsedTimes(location);
+        userConfigManagerService.forceUpdateLastUsedTimes(users);
+        locationConfigManagerService.forceUpdateLastUsedTime(location);
 
         PGMInstance pgmInstance = new PGMInstance(this, conf, id);
 

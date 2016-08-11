@@ -35,7 +35,7 @@ public class UserConfigDataService {
 
     public List<UserConfig> getUnusedUsers(int num) {
         // Now -900 sec
-        long time = Instant.now().minusSeconds(Constants.UNUSED_USER_TIME_SECONDS - 30).toEpochMilli();
+        long time = Instant.now().minusSeconds(Constants.UNUSED_USER_TIME_SECONDS).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
@@ -48,7 +48,7 @@ public class UserConfigDataService {
 
         ScanResult result = dynamoDBAsync.scan(scanRequest);
 
-        // If there are no results
+        // If there are not enough results
         if (result.getCount() < num) {
             return Collections.emptyList();
         }

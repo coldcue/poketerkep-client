@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,8 +30,8 @@ public class LocationConfigDataService {
         this.dynamoDBAsync = dynamoDBAsync;
     }
 
-    public List<LocationConfig> getUnusedLocations() {
-        long time = Instant.now().minusSeconds(Constants.UNUSED_LOCATION_TIME_SECONDS - 30).toEpochMilli();
+    public Optional<List<LocationConfig>> getUnusedLocations() {
+        long time = Instant.now().minusSeconds(Constants.UNUSED_LOCATION_TIME_SECONDS).toEpochMilli();
 
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(":time", new AttributeValue().withN(Long.toString(time)));
@@ -44,14 +45,13 @@ public class LocationConfigDataService {
 
         // If there are no results
         if (result.getCount() == 0) {
-            return null;
+            return Optional.empty();
         }
 
         // Get the list
-        return result.getItems().stream()
-                .limit(10)
+        return Optional.of(result.getItems().stream()
                 .map(LocationConfigMapper::mapFromDynamoDB)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     public void updateLocationLastUsed(LocationConfig locationConfig) {

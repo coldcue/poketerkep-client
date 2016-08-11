@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -119,14 +118,10 @@ public class PGMInstance {
         logger.info("Stopping instance...");
         if (process != null) {
             pgmLogReader.terminate();
+            ProcessUtils.killProcess(process);
             process.destroy();
-
             try {
-                process.waitFor(1, TimeUnit.SECONDS);
-                if (process.isAlive()) {
-                    process.destroyForcibly();
-                    Thread.sleep(500);
-                }
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
