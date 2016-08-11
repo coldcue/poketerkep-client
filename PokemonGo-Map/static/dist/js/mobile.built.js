@@ -10,8 +10,8 @@ var navBtn = document.querySelector('#nav button');
 navBtn.onclick = function () {
   if (localStorage.useLoc !== 'true') {
     navBtn.disabled = true;
-    return location.href = "mobile";
-  } else if ("geolocation" in navigator) {
+    return location.href = 'mobile';
+  } else if ('geolocation' in navigator) {
     // Getting the GPS position can be very slow on some devices
     navBtn.disabled = true;
     navBtn.innerText = 'Locating...';
@@ -44,17 +44,17 @@ function updateTimes() {
   for (var i = 0; i < remains.length; ++i) {
     var element = remains[i];
     var now = new Date().getTime();
-    var secondsPassed = Math.floor((now - page_loaded) / 1000);
+    var secondsPassed = Math.floor((now - pageLoaded) / 1000);
     var alivefor = element.getAttribute('disappear');
     var remain = alivefor - secondsPassed;
     var min = Math.floor(remain / 60);
     var sec = remain % 60;
     element.innerText = remain > 0 ? min + ' min ' + sec + ' sec' : '(expired)';
   }
-};
+}
 setInterval(updateTimes, 1000);
 
-document.querySelectorAll("li").forEach(function (listItem) {
+document.querySelectorAll('li').forEach(function (listItem) {
   listItem.onclick = function () {
     window.document.location = this.getAttribute('href');
   };

@@ -66,7 +66,7 @@ public class LocationConfigDataService {
                 .withExpressionAttributeValues(expressionAttributeValues);
 
         locationConfig.setLastUsed(now);
-        dynamoDBAsync.updateItemAsync(updateItemRequest);
+        dynamoDBAsync.updateItem(updateItemRequest);
     }
 
     public void releaseLocation(LocationConfig locationConfig) {

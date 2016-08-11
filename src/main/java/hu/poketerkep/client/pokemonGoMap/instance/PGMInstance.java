@@ -75,7 +75,6 @@ public class PGMInstance {
                 "-st", Integer.toString(conf.getLocation().getSteps()),
                 "-k", conf.getGoogleMapsKey(),
                 "-l", locationString,
-                "-sd", Integer.toString(10),
                 "-P", Integer.toString(getPort())
         ));
 
@@ -107,7 +106,8 @@ public class PGMInstance {
                     .redirectErrorStream(true)
                     .start();
 
-            new PGMLogReader(this, process).start();
+            PGMLogReader pgmLogReader = new PGMLogReader(this, process);
+            pgmLogReader.start();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1913,9 +1913,6 @@ body {
     transform: translateX(0);
     box-shadow: 0 0 1.5em 0 rgba(0, 0, 0, 0.2);
     visibility: visible; }
-  @media screen and (max-width: 736px) {
-    #nav {
-      padding: 2.5em 1.75em; } }
   #nav .ui-accordion-content {
     padding-top: 0.5em;
     padding-right: 0.5em;

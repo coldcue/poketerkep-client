@@ -6,12 +6,12 @@ import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PGMLogReader extends Thread {
+class PGMLogReader extends Thread {
 
     private final PGMInstance instance;
     private final Process process;
 
-    public PGMLogReader(PGMInstance instance, Process process) {
+    PGMLogReader(PGMInstance instance, Process process) {
         this.instance = instance;
         this.process = process;
     }
@@ -49,6 +49,7 @@ public class PGMLogReader extends Thread {
 
             if ("Could not retrieve token: Account is not yet active, please redirect.".equals(message)) {
                 instance.getMapManager().onUserBanned(userConfig);
+                instance.getHealthAnalyzer().onUserBanned();
             }
         }
     }

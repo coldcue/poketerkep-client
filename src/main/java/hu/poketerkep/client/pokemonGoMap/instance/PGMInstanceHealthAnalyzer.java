@@ -4,6 +4,7 @@ package hu.poketerkep.client.pokemonGoMap.instance;
 import hu.poketerkep.client.config.Constants;
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.model.AllData;
+import hu.poketerkep.client.model.UserConfig;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -37,12 +38,12 @@ public class PGMInstanceHealthAnalyzer {
         if (pokemonCount == 0
                 && pokestopCount == 0
                 && gymCount == 0
-                && isRunningFor(Constants.NO_POKEMON_GRACE_PERIOD, ChronoUnit.MINUTES)) {
+                && isRunningFor(Constants.NO_DATA_GRACE_PERIOD, ChronoUnit.MINUTES)) {
 
-            log.warning("There were no data from this instance for " + Constants.NO_POKEMON_GRACE_PERIOD + " minutes");
+            log.warning("There were no data from this instance for " + Constants.NO_DATA_GRACE_PERIOD + " minutes");
 
             // Stop the instance
-            shouldBeStopped = true;
+            stopInstance();
         }
     }
 
@@ -62,11 +63,28 @@ public class PGMInstanceHealthAnalyzer {
         if (noDataRivers >= Constants.NEW_DATA_RIVERS_MAX) {
             log.warning("There were too few pokemons from this instance");
 
-            shouldBeStopped = true;
+            stopInstance();
         }
     }
 
     private boolean isRunningFor(long amount, TemporalUnit unit) {
         return Instant.now().minus(amount, unit).isAfter(startTime);
+    }
+
+    void onUserBanned() {
+        int bannedCount = (int) pgmInstance.getConf().getUsers().stream()
+                .filter(UserConfig::getBanned)
+                .count();
+        int userCount = pgmInstance.getConf().getUsers().size();
+        int remainingUsers = userCount - bannedCount;
+
+        if (remainingUsers < 8) {
+            log.warning("Too much banned users in the instance");
+            stopInstance();
+        }
+    }
+
+    private void stopInstance() {
+        shouldBeStopped = true;
     }
 }
