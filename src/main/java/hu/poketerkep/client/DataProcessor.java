@@ -10,9 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * This extracts data and
@@ -32,16 +31,17 @@ public class DataProcessor {
     @Scheduled(fixedDelay = 5 * 1000, initialDelay = 10 * 1000)
     public void processData() {
         logger.info("Fetching data...");
-        List<AllData> allDataList = instanceManager.getNewAllDataList();
+        HashSet<AllData> allDataList = instanceManager.getNewAllData();
 
         logger.info("Processing data...");
 
         // Get pokemons
-        List<Pokemon> pokemons = allDataList.stream()
+        HashSet<Pokemon> pokemons = new HashSet<>();
+        allDataList.stream()
                 .filter(allData -> allData.getPokemons() != null) // Null check
                 .map(AllData::getPokemons) // Get pokemons from All data
                 .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+                .forEach(pokemons::add);
 
 
         if (pokemons.size() > 0) {

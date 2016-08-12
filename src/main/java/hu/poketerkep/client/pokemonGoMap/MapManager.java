@@ -195,10 +195,13 @@ public class MapManager implements SmartLifecycle {
      *
      * @return the raw data
      */
-    public List<AllData> getNewAllDataList() {
-        return pgmInstances.stream()
+    public HashSet<AllData> getNewAllData() {
+        HashSet<AllData> result = new HashSet<>();
+        pgmInstances.stream()
                 .map(PGMInstance::getNewAllData)
-                .collect(Collectors.toList());
+                .forEach(result::add);
+
+        return result;
     }
 
     /**

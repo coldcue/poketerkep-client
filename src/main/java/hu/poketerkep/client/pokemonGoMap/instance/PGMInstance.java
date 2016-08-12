@@ -140,7 +140,7 @@ public class PGMInstance {
 
         RawDataJsonDto rawData = new RawDataJsonDto();
         try {
-            rawData = restTemplate.getForObject("http://localhost:" + getPort() + "/raw_data?pokemon=true&pokestops=true&gyms=true&scanned=true", RawDataJsonDto.class);
+            rawData = restTemplate.getForObject("http://localhost:" + getPort() + "/raw_data?pokemon=true&pokestops=false&gyms=false&scanned=false", RawDataJsonDto.class);
 
             logger.info("Data arrived: [pokemons: " + rawData.getPokemons().size() +
                     ", pokestops: " + rawData.getPokestops().size() +
