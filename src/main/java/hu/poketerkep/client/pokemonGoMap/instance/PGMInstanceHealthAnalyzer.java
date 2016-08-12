@@ -2,6 +2,7 @@ package hu.poketerkep.client.pokemonGoMap.instance;
 
 
 import hu.poketerkep.client.config.Constants;
+import hu.poketerkep.client.json.PokemonJsonDto;
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.model.AllData;
 import hu.poketerkep.client.model.UserConfig;
@@ -9,6 +10,7 @@ import hu.poketerkep.client.model.UserConfig;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 public class PGMInstanceHealthAnalyzer {
@@ -44,6 +46,19 @@ public class PGMInstanceHealthAnalyzer {
 
             // Stop the instance
             stopInstance();
+        }
+
+        // Check max 15 min
+        long nowPlus15Min = Instant.now().plus(15, ChronoUnit.MINUTES).toEpochMilli();
+
+        HashSet<PokemonJsonDto> wrongDatePokemons = new HashSet<>();
+        rawDataJsonDto.getPokemons().stream()
+                .filter(pokemonJsonDto -> pokemonJsonDto.getDisappear_time() > nowPlus15Min)
+                .forEach(wrongDatePokemons::add);
+
+        if (wrongDatePokemons.size() > 0) {
+            log.warning("There were " + wrongDatePokemons.size() + " pokemons with wrong date!");
+            rawDataJsonDto.getPokemons().removeAll(wrongDatePokemons);
         }
     }
 
