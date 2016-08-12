@@ -57,7 +57,7 @@ public class PGMInstanceHealthAnalyzer {
                 .forEach(wrongDatePokemons::add);
 
         if (wrongDatePokemons.size() > 0) {
-            log.warning("There were " + wrongDatePokemons.size() + " pokemons with wrong date!");
+            log.warning("There were " + wrongDatePokemons.size() + " pokemons with wrong disappear time!");
             rawDataJsonDto.getPokemons().removeAll(wrongDatePokemons);
         }
     }
