@@ -68,7 +68,6 @@ public class PokemonDataService {
     public void deletePokemon(Pokemon pokemon) {
         Map<String, AttributeValue> hashKey = new HashMap<>();
         hashKey.put(POKEMON_TABLE_KEY, new AttributeValue().withS(pokemon.getEncounterId()));
-        hashKey.put("disappearTime", new AttributeValue().withN(Long.toString(pokemon.getDisappearTime())));
 
         DeleteItemRequest deleteItemRequest = new DeleteItemRequest()
                 .withTableName(POKEMONS_TABLE)
