@@ -79,6 +79,16 @@ public class PGMInstanceHealthAnalyzer {
         }
     }
 
+    /**
+     * Check the age of the instance. If it's older than 1hr, kill it
+     */
+    public void checkAge() {
+        if (isRunningFor(Constants.INSTANCE_KILL_AGE, ChronoUnit.HOURS)) {
+            log.info("Stopping instance, because it is too old.");
+            stopInstance();
+        }
+    }
+
     private boolean isRunningFor(long amount, TemporalUnit unit) {
         return Instant.now().minus(amount, unit).isAfter(startTime);
     }

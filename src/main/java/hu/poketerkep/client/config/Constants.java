@@ -8,4 +8,5 @@ public class Constants {
     public static final int NEW_DATA_RIVERS_MAX = 30;
 
     public static final long NO_DATA_GRACE_PERIOD = 2;
+    public static final long INSTANCE_KILL_AGE = 1;
 }

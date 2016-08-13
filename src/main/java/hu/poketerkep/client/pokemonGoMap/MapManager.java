@@ -109,6 +109,7 @@ public class MapManager implements SmartLifecycle {
 
             // Stop instances that should be stopped (with concurrency)
             new ArrayList<>(pgmInstances).stream()
+                    .peek(pgmInstance -> pgmInstance.getHealthAnalyzer().checkAge())
                     .filter(pgmInstance -> pgmInstance.getHealthAnalyzer().isShouldBeStopped())
                     .forEach(this::stopInstance);
 
