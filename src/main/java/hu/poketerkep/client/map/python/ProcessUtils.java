@@ -1,4 +1,4 @@
-package hu.poketerkep.client.pokemonGoMap.instance;
+package hu.poketerkep.client.map.python;
 
 
 import java.lang.reflect.Field;

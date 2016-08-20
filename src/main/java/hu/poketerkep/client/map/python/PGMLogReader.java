@@ -1,4 +1,4 @@
-package hu.poketerkep.client.pokemonGoMap.instance;
+package hu.poketerkep.client.map.python;
 
 import hu.poketerkep.client.model.UserConfig;
 
@@ -10,7 +10,6 @@ class PGMLogReader extends Thread {
 
     private final PGMInstance instance;
     private final Process process;
-    private BufferedReader bufferedReader;
 
     PGMLogReader(PGMInstance instance, Process process) {
         this.instance = instance;
@@ -21,7 +20,7 @@ class PGMLogReader extends Thread {
     public void run() {
         try {
             PrintWriter log = new PrintWriter(new FileWriter(instance.getLogFile(), true), true);
-            bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;
             while ((line = bufferedReader.readLine()) != null && !isInterrupted()) {
@@ -51,7 +50,11 @@ class PGMLogReader extends Thread {
             if ("Could not retrieve token: Account is not yet active, please redirect.".equals(message)) {
                 instance.getMapManager().onUserBanned(userConfig);
                 instance.getHealthAnalyzer().onUserBanned();
+            } else if (message.contains("map parsing failed")) {
+                instance.getMapManager().onUserBanned(userConfig);
+                instance.getHealthAnalyzer().onUserBanned();
             }
+
         }
     }
 
@@ -62,7 +65,7 @@ class PGMLogReader extends Thread {
      * @return the UserConfig
      */
     private UserConfig getUserConfigFromId(int id) {
-        return instance.getConf().getUsers().get(id);
+        return instance.getConfiguration().getUsers().get(id);
     }
 
     public void terminate() {

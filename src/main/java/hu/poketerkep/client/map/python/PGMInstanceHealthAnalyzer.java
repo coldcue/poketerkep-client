@@ -1,4 +1,4 @@
-package hu.poketerkep.client.pokemonGoMap.instance;
+package hu.poketerkep.client.map.python;
 
 
 import hu.poketerkep.client.config.Constants;
@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.logging.Logger;
 
-public class PGMInstanceHealthAnalyzer {
+class PGMInstanceHealthAnalyzer {
 
     private final PGMInstance pgmInstance;
     private final Instant startTime;
@@ -94,10 +94,10 @@ public class PGMInstanceHealthAnalyzer {
     }
 
     void onUserBanned() {
-        int bannedCount = (int) pgmInstance.getConf().getUsers().stream()
+        int bannedCount = (int) pgmInstance.getConfiguration().getUsers().stream()
                 .filter(UserConfig::getBanned)
                 .count();
-        int userCount = pgmInstance.getConf().getUsers().size();
+        int userCount = pgmInstance.getConfiguration().getUsers().size();
         int remainingUsers = userCount - bannedCount;
 
         if (remainingUsers < 10) {

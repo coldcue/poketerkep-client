@@ -1,11 +1,13 @@
-package hu.poketerkep.client.pokemonGoMap.instance;
+package hu.poketerkep.client.map.python;
 
 import hu.poketerkep.client.json.RawDataJsonDto;
+import hu.poketerkep.client.map.MapConfiguration;
+import hu.poketerkep.client.map.MapInstance;
+import hu.poketerkep.client.map.MapManager;
 import hu.poketerkep.client.mapper.RawDataToAllDataMapper;
 import hu.poketerkep.client.model.AllData;
 import hu.poketerkep.client.model.UserConfig;
 import hu.poketerkep.client.model.helpers.AllDataUtils;
-import hu.poketerkep.client.pokemonGoMap.MapManager;
 import hu.poketerkep.client.support.UserConfigHelper;
 import org.apache.commons.io.FileUtils;
 import org.springframework.web.client.RestTemplate;
@@ -21,14 +23,14 @@ import java.util.logging.Logger;
 /**
  * This is a PokemonGoMap instance
  */
-public class PGMInstance {
+public class PGMInstance implements MapInstance {
     public static final File DIR = new File("PokemonGo-Map");
     private static final String RUNSERVER_PY = "runserver.py";
     private static final String PYTHON = "python";
     private final File logFile;
     private final Logger logger;
     private final MapManager mapManager;
-    private final PGMConfiguration conf;
+    private final MapConfiguration conf;
     private final int instanceId;
     private final File workingDir;
     private final PGMInstanceHealthAnalyzer healthAnalyzer;
@@ -37,7 +39,7 @@ public class PGMInstance {
     private AllData oldAllData;
     private PGMLogReader pgmLogReader;
 
-    public PGMInstance(MapManager mapManager, PGMConfiguration conf, int instanceId) {
+    public PGMInstance(MapManager mapManager, MapConfiguration conf, int instanceId) {
         this.mapManager = mapManager;
         this.conf = conf;
         this.instanceId = instanceId;
@@ -49,18 +51,36 @@ public class PGMInstance {
         healthAnalyzer = new PGMInstanceHealthAnalyzer(this);
     }
 
-    public PGMInstanceHealthAnalyzer getHealthAnalyzer() {
+    @Override
+    public void check() {
+        healthAnalyzer.checkAge();
+    }
+
+    @Override
+    public boolean isShouldBeStopped() {
+        return healthAnalyzer.isShouldBeStopped();
+    }
+
+    @Override
+    public MapConfiguration getConfiguration() {
+        return conf;
+    }
+
+    PGMInstanceHealthAnalyzer getHealthAnalyzer() {
         return healthAnalyzer;
     }
 
+    @Override
     public String getInstanceName() {
         return instanceName;
     }
 
+    @Override
     public int getInstanceId() {
         return instanceId;
     }
 
+    @Override
     public void start() throws IOException {
         String locationString = conf.getLocation().getLatitude() + " " + conf.getLocation().getLongitude();
         logger.info("Starting instance: [user:" + conf.getUsers() + ", loc:" + locationString + "]");
@@ -114,6 +134,7 @@ public class PGMInstance {
     }
 
 
+    @Override
     public void stop() {
         logger.info("Stopping instance...");
         if (process != null) {
@@ -161,6 +182,7 @@ public class PGMInstance {
         return RawDataToAllDataMapper.fromRawData(rawData);
     }
 
+    @Override
     public AllData getNewAllData() {
         AllData allData = getAllData();
         AllData newAllData = AllDataUtils.getNew(oldAllData, allData);
@@ -177,9 +199,6 @@ public class PGMInstance {
         return 6000 + instanceId;
     }
 
-    public PGMConfiguration getConf() {
-        return conf;
-    }
 
     File getLogFile() {
         return logFile;

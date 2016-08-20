@@ -3,6 +3,7 @@
 import logging
 import calendar
 import sys
+import math
 from peewee import SqliteDatabase, InsertQuery, \
     IntegerField, CharField, DoubleField, BooleanField, \
     DateTimeField, CompositeKey, fn
@@ -23,7 +24,7 @@ log = logging.getLogger(__name__)
 args = get_args()
 flaskDb = FlaskDB()
 
-db_schema_version = 4
+db_schema_version = 5
 
 
 class MyRetryDB(RetryOperationalError, PooledMySQLDatabase):
@@ -200,9 +201,64 @@ class Pokemon(BaseModel):
                             )
                      )
 
-        query = query.group_by(Pokemon.spawnpoint_id).dicts()
+        # Sqlite doesn't support distinct on columns
+        if args.db_type == 'mysql':
+            query = query.distinct(Pokemon.spawnpoint_id)
+        else:
+            query = query.group_by(Pokemon.spawnpoint_id)
 
-        return list(query)
+        return list(query.dicts())
+
+    @classmethod
+    def get_spawnpoints_in_hex(cls, center, steps):
+        log.info('got {}steps'.format(steps))
+        # work out hex bounding box
+        hdist = ((steps * 120.0) - 50.0) / 1000.0
+        vdist = ((steps * 105.0) - 35.0) / 1000.0
+        R = 6378.1  # km radius of the earth
+        vang = math.degrees(vdist / R)
+        hang = math.degrees(hdist / (R * math.cos(math.radians(center[0]))))
+        north = center[0] + vang
+        south = center[0] - vang
+        east = center[1] + hang
+        west = center[1] - hang
+        # get all spawns in that box
+        query = (Pokemon
+                 .select(Pokemon.latitude.alias('lat'),
+                         Pokemon.longitude.alias('lng'),
+                         ((Pokemon.disappear_time.minute * 60) + Pokemon.disappear_time.second).alias('time'),
+                         Pokemon.spawnpoint_id
+                         ))
+        query = (query.where((Pokemon.latitude <= north) &
+                             (Pokemon.latitude >= south) &
+                             (Pokemon.longitude >= west) &
+                             (Pokemon.longitude <= east)
+                             ))
+        # Sqlite doesn't support distinct on columns
+        if args.db_type == 'mysql':
+            query = query.distinct(Pokemon.spawnpoint_id)
+        else:
+            query = query.group_by(Pokemon.spawnpoint_id)
+
+        s = list(query.dicts())
+        # for each spawn work out if it is in the hex (clipping the diagonals)
+        trueSpawns = []
+        for spawn in s:
+            spawn['time'] = (spawn['time'] + 2700) % 3600
+            # get the offset from the center of each spawn in km
+            offset = [math.radians(spawn['lat'] - center[0]) * R, math.radians(spawn['lng'] - center[1]) * (R * math.cos(math.radians(center[0])))]
+            # check agains the 4 lines that make up the diagonals
+            if (offset[1] + (offset[0] * 0.5)) > hdist:  # too far ne
+                continue
+            if (offset[1] - (offset[0] * 0.5)) > hdist:  # too far se
+                continue
+            if ((offset[0] * 0.5) - offset[1]) > hdist:  # too far nw
+                continue
+            if ((0 - offset[1]) - (offset[0] * 0.5)) > hdist:  # too far sw
+                continue
+            # if it gets to here its  a good spawn
+            trueSpawns.append(spawn)
+        return trueSpawns
 
 
 class Pokestop(BaseModel):
@@ -513,6 +569,9 @@ def verify_database_schema(db):
 
 
 def database_migrate(db, old_ver):
+    # Update database schema version
+    Versions.update(val=db_schema_version).where(Versions.key == 'schema_version').execute()
+
     log.info("Detected database version %i, updating to %i", old_ver, db_schema_version)
 
     # Perform migrations here
@@ -539,5 +598,11 @@ def database_migrate(db, old_ver):
     if old_ver < 4:
         db.drop_tables([ScannedLocation])
 
-    # Update database schema version
-    Versions.update(val=db_schema_version).where(Versions.key == 'schema_version').execute()
+    if old_ver < 5:
+        # Some pokemon were added before the 595 bug was "fixed"
+        # Clean those up for a better UX
+        query = (Pokemon
+                 .delete()
+                 .where(Pokemon.disappear_time >
+                        (datetime.utcnow() - timedelta(hours=24))))
+        query.execute()

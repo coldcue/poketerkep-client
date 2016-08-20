@@ -1,13 +1,13 @@
-package hu.poketerkep.client.pokemonGoMap;
+package hu.poketerkep.client.map;
 
 import hu.poketerkep.client.dataservice.UserConfigDataService;
 import hu.poketerkep.client.exception.NoMoreLocationException;
 import hu.poketerkep.client.exception.NoMoreUsersException;
+import hu.poketerkep.client.map.java.PokemonMapInstance;
+import hu.poketerkep.client.map.python.PGMInstance;
 import hu.poketerkep.client.model.AllData;
 import hu.poketerkep.client.model.LocationConfig;
 import hu.poketerkep.client.model.UserConfig;
-import hu.poketerkep.client.pokemonGoMap.instance.PGMConfiguration;
-import hu.poketerkep.client.pokemonGoMap.instance.PGMInstance;
 import hu.poketerkep.client.service.LocationConfigManagerService;
 import hu.poketerkep.client.service.UserConfigManagerService;
 import hu.poketerkep.client.tor.TorInstance;
@@ -30,7 +30,7 @@ public class MapManager implements SmartLifecycle {
     private final LocationConfigManagerService locationConfigManagerService;
     // The running state of the Instance Manager
     private boolean running;
-    private HashSet<PGMInstance> pgmInstances = new HashSet<>();
+    private HashSet<MapInstance> mapInstances = new HashSet<>();
     private HashSet<TorInstance> torInstances = new HashSet<>();
     @Value("${instance-count:3}")
     private int instanceCount;
@@ -38,6 +38,8 @@ public class MapManager implements SmartLifecycle {
     private boolean useTor;
     @Value("${users-per-instace:15}")
     private int usersPerInstance;
+    @Value("${use-pgm:false}")
+    private boolean usePgm;
 
     @Autowired
     public MapManager(UserConfigDataService userConfigDataService, UserConfigManagerService userConfigManagerService, LocationConfigManagerService locationConfigManagerService) {
@@ -81,7 +83,7 @@ public class MapManager implements SmartLifecycle {
         if (isRunning()) {
 
             // Fill empty slots
-            int emptySlots = instanceCount - pgmInstances.size();
+            int emptySlots = instanceCount - mapInstances.size();
             for (int i = 0; i < emptySlots; i++) {
                 try {
                     createInstance();
@@ -108,9 +110,9 @@ public class MapManager implements SmartLifecycle {
         if (isRunning()) {
 
             // Stop instances that should be stopped (with concurrency)
-            new ArrayList<>(pgmInstances).stream()
-                    .peek(pgmInstance -> pgmInstance.getHealthAnalyzer().checkAge())
-                    .filter(pgmInstance -> pgmInstance.getHealthAnalyzer().isShouldBeStopped())
+            new ArrayList<>(mapInstances).stream()
+                    .peek(MapInstance::check)
+                    .filter(MapInstance::isShouldBeStopped)
                     .forEach(this::stopInstance);
 
         }
@@ -123,9 +125,9 @@ public class MapManager implements SmartLifecycle {
      * @return List of UserConfigs
      */
     private List<UserConfig> getUserConfigs() {
-        return pgmInstances.stream()
-                .map(PGMInstance::getConf)
-                .map(PGMConfiguration::getUsers)
+        return mapInstances.stream()
+                .map(MapInstance::getConfiguration)
+                .map(MapConfiguration::getUsers)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
@@ -136,9 +138,9 @@ public class MapManager implements SmartLifecycle {
      * @return List of LocationConfigs
      */
     private List<LocationConfig> getLocationConfigs() {
-        return pgmInstances.stream()
-                .map(PGMInstance::getConf)
-                .map(PGMConfiguration::getLocation)
+        return mapInstances.stream()
+                .map(MapInstance::getConfiguration)
+                .map(MapConfiguration::getLocation)
                 .collect(Collectors.toList());
     }
 
@@ -147,8 +149,8 @@ public class MapManager implements SmartLifecycle {
      *
      * @return the instance itself
      */
-    private PGMInstance createInstance() throws NoMoreUsersException, NoMoreLocationException, IOException {
-        PGMConfiguration conf = new PGMConfiguration();
+    private MapInstance createInstance() throws NoMoreUsersException, NoMoreLocationException, IOException {
+        MapConfiguration conf = new MapConfiguration();
 
         // Set location
         Optional<LocationConfig> optionalLocation = locationConfigManagerService.getUnusedLocation(new ArrayList<>(getLocationConfigs()));
@@ -173,7 +175,7 @@ public class MapManager implements SmartLifecycle {
         if (useTor) {
             TorInstance torInstance = new TorInstance(id);
             torInstance.start();
-            conf.setProxyPort(Optional.of(torInstance.getProxyPort()));
+            conf.setProxyPort(torInstance.getProxyPort());
             torInstances.add(torInstance);
         }
 
@@ -183,12 +185,13 @@ public class MapManager implements SmartLifecycle {
         userConfigManagerService.forceUpdateLastUsedTimes(users);
         locationConfigManagerService.forceUpdateLastUsedTime(location);
 
-        PGMInstance pgmInstance = new PGMInstance(this, conf, id);
 
-        pgmInstance.start();
-        pgmInstances.add(pgmInstance);
+        MapInstance mapInstance = usePgm ? new PGMInstance(this, conf, id) : new PokemonMapInstance(this,conf,id);
 
-        return pgmInstance;
+        mapInstance.start();
+        mapInstances.add(mapInstance);
+
+        return mapInstance;
     }
 
     /**
@@ -198,8 +201,8 @@ public class MapManager implements SmartLifecycle {
      */
     public HashSet<AllData> getNewAllData() {
         HashSet<AllData> result = new HashSet<>();
-        pgmInstances.stream()
-                .map(PGMInstance::getNewAllData)
+        mapInstances.stream()
+                .map(MapInstance::getNewAllData)
                 .forEach(result::add);
 
         return result;
@@ -208,15 +211,15 @@ public class MapManager implements SmartLifecycle {
     /**
      * Stops an instance
      *
-     * @param pgmInstance the instance
+     * @param mapInstance the instance
      */
-    private void stopInstance(PGMInstance pgmInstance) {
+    private void stopInstance(MapInstance mapInstance) {
 
-        log.info("Stopping instace: " + pgmInstance.getInstanceName());
+        log.info("Stopping instace: " + mapInstance.getInstanceName());
 
         // Stop tor
         if (useTor) {
-            int instanceId = pgmInstance.getInstanceId();
+            int instanceId = mapInstance.getInstanceId();
             Optional<TorInstance> torInstanceOptional = torInstances.stream()
                     .filter(ti -> ti.getTorId() == instanceId).findFirst();
 
@@ -227,14 +230,14 @@ public class MapManager implements SmartLifecycle {
             }
         }
 
-        // Stop the pgmInstance
-        pgmInstance.stop();
+        // Stop the mapInstance
+        mapInstance.stop();
 
         // Release users and locations
-        userConfigManagerService.releaseUsers(pgmInstance.getConf().getUsers());
-        locationConfigManagerService.releaseLocation(pgmInstance.getConf().getLocation());
+        userConfigManagerService.releaseUsers(mapInstance.getConfiguration().getUsers());
+        locationConfigManagerService.releaseLocation(mapInstance.getConfiguration().getLocation());
 
-        pgmInstances.remove(pgmInstance);
+        mapInstances.remove(mapInstance);
     }
 
     /**
@@ -245,7 +248,7 @@ public class MapManager implements SmartLifecycle {
         running = false;
 
         log.info("Stopping instances...");
-        pgmInstances.forEach(PGMInstance::stop);
+        mapInstances.forEach(MapInstance::stop);
 
         log.info("Stopping tor instances...");
         torInstances.forEach(torInstance -> torInstance.setStop(true));
@@ -296,8 +299,8 @@ public class MapManager implements SmartLifecycle {
     }
 
     private int generateUniqueInstanceId() {
-        List<Integer> instanceIds = pgmInstances.stream()
-                .mapToInt(PGMInstance::getInstanceId)
+        List<Integer> instanceIds = mapInstances.stream()
+                .mapToInt(MapInstance::getInstanceId)
                 .boxed()
                 .collect(Collectors.toList());
 

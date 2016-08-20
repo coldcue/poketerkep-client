@@ -3,7 +3,7 @@ package hu.poketerkep.client;
 import hu.poketerkep.client.dataservice.PokemonDataService;
 import hu.poketerkep.client.model.AllData;
 import hu.poketerkep.client.model.Pokemon;
-import hu.poketerkep.client.pokemonGoMap.MapManager;
+import hu.poketerkep.client.map.MapManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

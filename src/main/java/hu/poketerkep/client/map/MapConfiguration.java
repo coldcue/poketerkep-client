@@ -1,4 +1,4 @@
-package hu.poketerkep.client.pokemonGoMap.instance;
+package hu.poketerkep.client.map;
 
 import hu.poketerkep.client.model.LocationConfig;
 import hu.poketerkep.client.model.UserConfig;
@@ -10,17 +10,17 @@ import java.util.Optional;
  * This configuration stores the values for the PokemonGoMap
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class PGMConfiguration {
+public class MapConfiguration {
     private List<UserConfig> users;
     private LocationConfig location;
     private String googleMapsKey;
-    private Optional<Integer> proxyPort = Optional.empty();
+    private Integer proxyPort;
 
-    public PGMConfiguration() {
+    public MapConfiguration() {
 
     }
 
-    public PGMConfiguration(List<UserConfig> users, LocationConfig location, String googleMapsKey) {
+    public MapConfiguration(List<UserConfig> users, LocationConfig location, String googleMapsKey) {
         this.users = users;
         this.location = location;
         this.googleMapsKey = googleMapsKey;
@@ -51,10 +51,10 @@ public class PGMConfiguration {
     }
 
     public Optional<Integer> getProxyPort() {
-        return proxyPort;
+        return Optional.of(proxyPort);
     }
 
-    public void setProxyPort(Optional<Integer> proxyPort) {
+    public void setProxyPort(Integer proxyPort) {
         this.proxyPort = proxyPort;
     }
 }

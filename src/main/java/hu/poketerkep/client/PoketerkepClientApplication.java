@@ -1,6 +1,6 @@
 package hu.poketerkep.client;
 
-import hu.poketerkep.client.pokemonGoMap.instance.PGMInstance;
+import hu.poketerkep.client.map.python.PGMInstance;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
