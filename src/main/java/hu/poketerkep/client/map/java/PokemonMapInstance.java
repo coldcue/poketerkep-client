@@ -3,10 +3,10 @@ package hu.poketerkep.client.map.java;
 import hu.poketerkep.client.map.MapConfiguration;
 import hu.poketerkep.client.map.MapInstance;
 import hu.poketerkep.client.map.MapManager;
-import hu.poketerkep.client.map.java.geo.Coordinate;
+import hu.poketerkep.shared.geo.Coordinate;
 import hu.poketerkep.client.map.java.geo.LocationGenerator;
 import hu.poketerkep.client.model.AllData;
-import hu.poketerkep.client.model.Pokemon;
+import hu.poketerkep.shared.model.Pokemon;
 
 import java.io.IOException;
 import java.util.Collections;

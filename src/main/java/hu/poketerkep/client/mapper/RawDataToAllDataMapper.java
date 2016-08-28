@@ -2,7 +2,7 @@ package hu.poketerkep.client.mapper;
 
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.model.AllData;
-import hu.poketerkep.client.model.Pokemon;
+import hu.poketerkep.shared.model.Pokemon;
 
 import java.util.HashSet;
 import java.util.stream.Collectors;

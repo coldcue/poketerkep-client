@@ -39,6 +39,7 @@ dependencies {
     compile 'commons-codec:commons-codec:1.10'
     compile 'commons-io:commons-io:2.5'
     compile 'com.google.guava:guava:19.0'
+    compile project(':poketerkep-shared')
 
     compile files('libs/PokeGOAPI-library-all-0.4.0.jar')
 

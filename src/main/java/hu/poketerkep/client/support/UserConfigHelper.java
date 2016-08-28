@@ -1,6 +1,6 @@
 package hu.poketerkep.client.support;
 
-import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.shared.model.UserConfig;
 import org.apache.commons.codec.digest.DigestUtils;
 
 

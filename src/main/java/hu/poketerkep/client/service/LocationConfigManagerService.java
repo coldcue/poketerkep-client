@@ -2,8 +2,8 @@ package hu.poketerkep.client.service;
 
 import hu.poketerkep.client.config.Constants;
 import hu.poketerkep.client.dataservice.LocationConfigDataService;
-import hu.poketerkep.client.model.LocationConfig;
-import hu.poketerkep.client.model.helpers.LastUsedUtils;
+import hu.poketerkep.shared.model.LocationConfig;
+import hu.poketerkep.shared.model.helpers.LastUsedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

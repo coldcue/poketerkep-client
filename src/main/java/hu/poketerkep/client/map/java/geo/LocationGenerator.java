@@ -1,6 +1,8 @@
 package hu.poketerkep.client.map.java.geo;
 
-import hu.poketerkep.client.model.LocationConfig;
+import hu.poketerkep.shared.geo.Direction;
+import hu.poketerkep.shared.model.LocationConfig;
+import hu.poketerkep.shared.geo.Coordinate;
 
 import java.util.ArrayList;
 import java.util.List;

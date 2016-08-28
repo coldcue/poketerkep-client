@@ -4,7 +4,7 @@ package hu.poketerkep.client.map.python;
 import hu.poketerkep.client.config.Constants;
 import hu.poketerkep.client.json.RawDataJsonDto;
 import hu.poketerkep.client.model.AllData;
-import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.shared.model.UserConfig;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

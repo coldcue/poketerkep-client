@@ -6,7 +6,7 @@ import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import hu.poketerkep.client.mapper.PokemonMapper;
-import hu.poketerkep.client.model.Pokemon;
+import hu.poketerkep.shared.model.Pokemon;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

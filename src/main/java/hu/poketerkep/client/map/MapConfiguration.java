@@ -1,7 +1,7 @@
 package hu.poketerkep.client.map;
 
-import hu.poketerkep.client.model.LocationConfig;
-import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.shared.model.LocationConfig;
+import hu.poketerkep.shared.model.UserConfig;
 
 import java.util.List;
 import java.util.Optional;

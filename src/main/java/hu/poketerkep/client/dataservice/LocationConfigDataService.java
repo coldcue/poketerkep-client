@@ -6,8 +6,8 @@ import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import hu.poketerkep.client.config.Constants;
-import hu.poketerkep.client.mapper.LocationConfigMapper;
-import hu.poketerkep.client.model.LocationConfig;
+import hu.poketerkep.shared.mapper.LocationConfigMapper;
+import hu.poketerkep.shared.model.LocationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

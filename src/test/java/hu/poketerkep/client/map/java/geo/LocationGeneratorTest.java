@@ -1,5 +1,6 @@
 package hu.poketerkep.client.map.java.geo;
 
+import hu.poketerkep.shared.geo.Coordinate;
 import org.junit.Test;
 
 import java.util.List;

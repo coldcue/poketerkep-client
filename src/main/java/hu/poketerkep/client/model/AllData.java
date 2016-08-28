@@ -1,5 +1,7 @@
 package hu.poketerkep.client.model;
 
+import hu.poketerkep.shared.model.Pokemon;
+
 import java.util.HashSet;
 
 public class AllData {

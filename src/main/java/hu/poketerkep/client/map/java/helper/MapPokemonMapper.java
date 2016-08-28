@@ -2,7 +2,7 @@ package hu.poketerkep.client.map.java.helper;
 
 import POGOProtos.Map.Pokemon.MapPokemonOuterClass;
 import com.google.common.primitives.Longs;
-import hu.poketerkep.client.model.Pokemon;
+import hu.poketerkep.shared.model.Pokemon;
 import org.apache.commons.codec.binary.Base64;
 
 

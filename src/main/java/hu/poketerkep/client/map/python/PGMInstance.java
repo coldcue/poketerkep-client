@@ -6,7 +6,7 @@ import hu.poketerkep.client.map.MapInstance;
 import hu.poketerkep.client.map.MapManager;
 import hu.poketerkep.client.mapper.RawDataToAllDataMapper;
 import hu.poketerkep.client.model.AllData;
-import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.shared.model.UserConfig;
 import hu.poketerkep.client.model.helpers.AllDataUtils;
 import hu.poketerkep.client.support.UserConfigHelper;
 import org.apache.commons.io.FileUtils;

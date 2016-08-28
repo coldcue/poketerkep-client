@@ -1,6 +1,6 @@
 package hu.poketerkep.client.map.python;
 
-import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.shared.model.UserConfig;
 
 import java.io.*;
 import java.util.regex.Matcher;

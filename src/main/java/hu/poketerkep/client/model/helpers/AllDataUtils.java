@@ -1,7 +1,7 @@
 package hu.poketerkep.client.model.helpers;
 
 import hu.poketerkep.client.model.AllData;
-import hu.poketerkep.client.model.Pokemon;
+import hu.poketerkep.shared.model.Pokemon;
 
 
 public class AllDataUtils {

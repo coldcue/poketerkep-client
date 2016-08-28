@@ -1,6 +1,7 @@
 package hu.poketerkep.client.model.helpers;
 
-import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.shared.model.UserConfig;
+import hu.poketerkep.shared.model.helpers.LastUsedUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;

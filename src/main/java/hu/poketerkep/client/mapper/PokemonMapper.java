@@ -2,7 +2,7 @@ package hu.poketerkep.client.mapper;
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import hu.poketerkep.client.json.PokemonJsonDto;
-import hu.poketerkep.client.model.Pokemon;
+import hu.poketerkep.shared.model.Pokemon;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +19,6 @@ public class PokemonMapper {
         pokemon.setLatitude(jsonDto.getLatitude());
         pokemon.setLongitude(jsonDto.getLongitude());
         pokemon.setPokemonId(jsonDto.getPokemon_id());
-        pokemon.setPokemonName(jsonDto.getPokemon_name());
         pokemon.setSpawnpointId(jsonDto.getSpawnpoint_id());
 
         return pokemon;
@@ -33,7 +32,6 @@ public class PokemonMapper {
         valueMap.put("latitude", new AttributeValue().withN(String.valueOf(pokemon.getLatitude())));
         valueMap.put("longitude", new AttributeValue().withN(String.valueOf(pokemon.getLongitude())));
         valueMap.put("pokemonId", new AttributeValue().withN(String.valueOf(pokemon.getPokemonId())));
-        valueMap.put("pokemonName", new AttributeValue().withS(pokemon.getPokemonName()));
         valueMap.put("spawnpointId", new AttributeValue().withS(pokemon.getSpawnpointId()));
 
         return valueMap;

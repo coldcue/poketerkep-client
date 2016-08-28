@@ -5,10 +5,10 @@ import com.pokegoapi.api.map.MapObjects;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
-import hu.poketerkep.client.map.java.geo.Coordinate;
+import hu.poketerkep.shared.geo.Coordinate;
 import hu.poketerkep.client.map.java.helper.MapPokemonMapper;
 import hu.poketerkep.client.model.AllData;
-import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.shared.model.UserConfig;
 import hu.poketerkep.client.support.UserConfigHelper;
 import okhttp3.OkHttpClient;
 

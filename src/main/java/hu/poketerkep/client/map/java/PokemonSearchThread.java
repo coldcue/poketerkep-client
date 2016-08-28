@@ -2,9 +2,9 @@ package hu.poketerkep.client.map.java;
 
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
-import hu.poketerkep.client.map.java.geo.Coordinate;
+import hu.poketerkep.shared.geo.Coordinate;
 import hu.poketerkep.client.map.java.geo.LocationGenerator;
-import hu.poketerkep.client.model.UserConfig;
+import hu.poketerkep.shared.model.UserConfig;
 
 import java.util.HashSet;
 import java.util.List;
