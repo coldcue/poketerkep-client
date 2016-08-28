@@ -12,6 +12,7 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'spring-boot'
+apply plugin: 'idea'
 
 jar {
     baseName = 'poketerkep-client'
@@ -37,7 +38,21 @@ dependencies {
     compile 'com.amazonaws:aws-java-sdk:1.11.20'
     compile 'commons-codec:commons-codec:1.10'
     compile 'commons-io:commons-io:2.5'
+    compile 'com.google.guava:guava:19.0'
+
+    compile files('libs/PokeGOAPI-library-all-0.4.0.jar')
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
+
+
+idea {
+    project {
+        languageLevel = '1.8'
+    }
+    module {
+        downloadJavadoc = true // defaults to false
+        downloadSources = true
+    }
 }

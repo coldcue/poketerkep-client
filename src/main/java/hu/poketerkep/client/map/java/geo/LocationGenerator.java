@@ -1,5 +1,7 @@
 package hu.poketerkep.client.map.java.geo;
 
+import hu.poketerkep.client.model.LocationConfig;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +22,11 @@ public class LocationGenerator {
     public LocationGenerator(Coordinate initialLocation, int stepCount) {
         this.initialLocation = initialLocation;
         this.stepCount = stepCount;
+    }
+
+    public LocationGenerator(LocationConfig locationConfig) {
+        this.initialLocation = Coordinate.fromLocationConfig(locationConfig);
+        this.stepCount = locationConfig.getSteps();
     }
 
     public List<Coordinate> generateSteps() {

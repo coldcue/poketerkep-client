@@ -1,0 +1,3 @@
+[submodule "poketerkep-shared"]
+	path = poketerkep-shared
+	url = git@github.com:coldcue/poketerkep-shared.git

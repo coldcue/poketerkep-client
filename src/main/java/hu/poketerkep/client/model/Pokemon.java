@@ -7,7 +7,6 @@ public class Pokemon {
     private Double latitude;
     private Double longitude;
     private Integer pokemonId;
-    private String pokemonName;
     private String spawnpointId;
 
     public String getEncounterId() {
@@ -48,14 +47,6 @@ public class Pokemon {
 
     public void setPokemonId(Integer pokemonId) {
         this.pokemonId = pokemonId;
-    }
-
-    public String getPokemonName() {
-        return pokemonName;
-    }
-
-    public void setPokemonName(String pokemonName) {
-        this.pokemonName = pokemonName;
     }
 
     public String getSpawnpointId() {

@@ -10,6 +10,7 @@ import hu.poketerkep.client.model.Pokemon;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +23,7 @@ public class PokemonMapInstance implements MapInstance {
     private final List<Coordinate> coordinates;
     private final String instanceName;
     private final Set<Pokemon> pokemons;
+    private final Set<Pokemon> oldPokemons;
 
     public PokemonMapInstance(MapManager mapManager, MapConfiguration conf, int id) {
         this.mapManager = mapManager;
@@ -38,7 +40,9 @@ public class PokemonMapInstance implements MapInstance {
                 .generateSteps();
 
         instanceName = "MapInstance-" + conf.getLocation().getLocationId();
+
         pokemons = Collections.newSetFromMap(new ConcurrentHashMap<Pokemon, Boolean>());
+        oldPokemons = new HashSet<>();
     }
 
     @Override

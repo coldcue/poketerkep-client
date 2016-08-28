@@ -1,5 +1,7 @@
 package hu.poketerkep.client.map.java.geo;
 
+import hu.poketerkep.client.model.LocationConfig;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
@@ -19,6 +21,10 @@ public class Coordinate {
 
     private static Coordinate fromRadians(double latitudeRadians, double longitudeRadians) {
         return new Coordinate(Math.toDegrees(latitudeRadians), Math.toDegrees(longitudeRadians));
+    }
+
+    public static Coordinate fromLocationConfig(LocationConfig locationConfig) {
+        return new Coordinate(locationConfig.getLatitude(), locationConfig.getLongitude());
     }
 
     /**

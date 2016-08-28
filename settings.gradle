@@ -1,0 +1,3 @@
+rootProject.name = 'poketerkep-client'
+
+include 'poketerkep-shared'
