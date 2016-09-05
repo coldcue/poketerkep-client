@@ -25,7 +25,7 @@ public class MapManager implements SmartLifecycle {
     // The running state of the Instance Manager
     private boolean running;
     private Set<MapScannerInstance> instances = ConcurrentHashMap.newKeySet();
-    @Value("${scanner-instance-count:1}")
+    @Value("${scanner-instances:1}")
     private int scannerInstanceCount;
     @Value("${use-tor:false}")
     private boolean useTor;

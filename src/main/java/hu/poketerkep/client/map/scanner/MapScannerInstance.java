@@ -4,13 +4,10 @@ import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 import hu.poketerkep.client.config.Constants;
 import hu.poketerkep.client.map.MapManager;
-import hu.poketerkep.client.model.AllData;
 import hu.poketerkep.shared.geo.Coordinate;
-import hu.poketerkep.shared.model.Pokemon;
 import hu.poketerkep.shared.model.UserConfig;
 
 import java.net.Proxy;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -55,11 +52,13 @@ public class MapScannerInstance extends Thread {
                 log.info("Using user: " + userConfig);
 
                 // Create a worker
-                MapScannerWorker mapScannerWorker = new MapScannerWorker(userConfig.get(), proxy);
+                MapScannerWorker mapScannerWorker = new MapScannerWorker(userConfig.get(), proxy, mapManager.getClientService(), log);
 
                 try {
                     log.info("Connecting to Niantic...");
                     mapScannerWorker.connect();
+
+                    Thread.sleep(Constants.SCAN_DELAY);
 
                     // Scan locations
                     while (!isShutdown.get()) {
@@ -71,21 +70,23 @@ public class MapScannerInstance extends Thread {
 
                         log.info("Scanning location: " + coordinateOptional.get());
 
-                        AllData data = mapScannerWorker.search(coordinateOptional.get());
+                        try {
+                            mapScannerWorker.scan(coordinateOptional.get());
+                        } catch (Exception e) {
+                            log.warning("Scanning was unsuccessful: " + e.getMessage());
+                        }
 
-                        // Upload data
-                        HashSet<Pokemon> pokemons = data.getPokemons();
-                        log.info("Uploading " + pokemons.size() + " pokemons");
-                        mapManager.getClientService().addPokemons(pokemons);
 
                         Thread.sleep(Constants.SCAN_DELAY);
                     }
 
-                } catch (LoginFailedException | RemoteServerException e) {
-                    log.info("Cannot connect to Niantic: " + e.getMessage());
+                } catch (LoginFailedException e) {
+                    log.warning("Cannot log in with user :" + userConfig + ", it is banned");
+                    mapManager.getUserService().banUser(userConfig.get());
 
+                } catch (RemoteServerException e) {
+                    log.info("Server is busy");
                 } catch (Exception e) {
-                    e.printStackTrace();
                     log.warning("Something bad happened: " + e.getMessage());
                 }
 

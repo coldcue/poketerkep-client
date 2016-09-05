@@ -33,4 +33,12 @@ public class UserService {
 
         return Optional.empty();
     }
+
+    public void banUser(UserConfig userConfig) {
+        try {
+            userAPIConnector.banUser(userConfig);
+        } catch (Exception e) {
+
+        }
+    }
 }
