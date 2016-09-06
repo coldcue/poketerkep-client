@@ -50,7 +50,7 @@ class MapScannerWorker {
 
         //TODO Enable profile automatically
         PlayerProfile playerProfile = pokemonGo.getPlayerProfile();
-        playerProfile.enableAccount();
+        playerProfile.activateAccount();
         playerProfile.updateProfile();
     }
 

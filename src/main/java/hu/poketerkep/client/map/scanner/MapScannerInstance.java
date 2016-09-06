@@ -2,7 +2,6 @@ package hu.poketerkep.client.map.scanner;
 
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
-import hu.poketerkep.client.config.Constants;
 import hu.poketerkep.client.map.MapManager;
 import hu.poketerkep.shared.geo.Coordinate;
 import hu.poketerkep.shared.model.UserConfig;
@@ -20,6 +19,10 @@ public class MapScannerInstance extends Thread {
     private final int instanceId;
     private final MapManager mapManager;
     private AtomicBoolean isShutdown = new AtomicBoolean(false);
+    private boolean isLoggedIn = false;
+    private boolean nextUserNeeded = true;
+    private MapScannerWorker mapScannerWorker;
+    private UserConfig userConfig;
 
     public MapScannerInstance(int instanceId, MapManager mapManager) {
         this.instanceId = instanceId;
@@ -35,67 +38,70 @@ public class MapScannerInstance extends Thread {
     @Override
     public void run() {
         try {
-            while (!isShutdown.get()) {
-                Optional<UserConfig> userConfig = mapManager.getUserService().nextUser();
+            if (!isLoggedIn) {
                 Proxy proxy = mapManager.getProxy();
-
                 log.info("Using proxy: " + proxy);
 
-                // Check if are there enough users
-
-                if (!userConfig.isPresent()) {
-                    log.warning("No more users!");
-                    Thread.sleep(Constants.LOGIN_DELAY);
-                    continue;
+                // If next user is needed
+                if (nextUserNeeded) {
+                    if (!getNextUser()) return;
                 }
-
-                log.info("Using user: " + userConfig);
 
                 // Create a worker
-                MapScannerWorker mapScannerWorker = new MapScannerWorker(userConfig.get(), proxy, mapManager.getClientService(), log);
+                mapScannerWorker = new MapScannerWorker(userConfig, proxy, mapManager.getClientService(), log);
 
-                try {
-                    log.info("Connecting to Niantic...");
-                    mapScannerWorker.connect();
+                log.info("Connecting to Niantic...");
+                mapScannerWorker.connect();
 
-                    Thread.sleep(Constants.SCAN_DELAY);
+                // Set logged in flag
+                isLoggedIn = true;
 
-                    // Scan locations
-                    while (!isShutdown.get()) {
-                        Optional<Coordinate> coordinateOptional = mapManager.getClientService().nextScanLocation();
+            } else {
+                // Scan location
+                Optional<Coordinate> coordinateOptional = mapManager.getClientService().nextScanLocation();
 
-                        if (!coordinateOptional.isPresent()) {
-                            break;
-                        }
-
-                        log.info("Scanning location: " + coordinateOptional.get());
-
-                        try {
-                            mapScannerWorker.scan(coordinateOptional.get());
-                        } catch (Exception e) {
-                            log.warning("Scanning was unsuccessful: " + e.getMessage());
-                        }
-
-
-                        Thread.sleep(Constants.SCAN_DELAY);
-                    }
-
-                } catch (LoginFailedException e) {
-                    log.warning("Cannot log in with user :" + userConfig + ", it is banned");
-                    mapManager.getUserService().banUser(userConfig.get());
-
-                } catch (RemoteServerException e) {
-                    log.info("Server is busy");
-                } catch (Exception e) {
-                    log.warning("Something bad happened: " + e.getMessage());
+                if (!coordinateOptional.isPresent()) {
+                    return;
                 }
 
-                Thread.sleep(Constants.LOGIN_DELAY);
+                log.info("Scanning location: " + coordinateOptional.get());
 
+                try {
+                    mapScannerWorker.scan(coordinateOptional.get());
+                } catch (Exception e) {
+                    log.warning("Scanning was unsuccessful: " + e.getMessage());
+                }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
+        } catch (LoginFailedException e) {
+            log.warning("Cannot log in with user :" + userConfig + ", it is banned");
+            mapManager.getUserService().banUser(userConfig);
+            isLoggedIn = false;
+            nextUserNeeded = true;
+        } catch (RemoteServerException e) {
+            log.info("Server is busy");
+        } catch (Exception e) {
+            log.warning("Something bad happened: " + e.getMessage());
         }
+    }
+
+    private boolean getNextUser() {
+        Optional<UserConfig> userConfigOptional = mapManager.getUserService().nextUser();
+
+        // Check if are there enough users
+
+        if (!userConfigOptional.isPresent()) {
+            log.warning("No more users!");
+            return false;
+        }
+
+        userConfig = userConfigOptional.get();
+        log.info("Using user: " + userConfig);
+
+        //Reset flag
+        nextUserNeeded = false;
+
+        return true;
     }
 
     public void shutdown() {

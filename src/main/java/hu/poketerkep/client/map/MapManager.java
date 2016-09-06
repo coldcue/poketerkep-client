@@ -12,6 +12,9 @@ import java.net.Proxy;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -25,8 +28,12 @@ public class MapManager implements SmartLifecycle {
     // The running state of the Instance Manager
     private boolean running;
     private Set<MapScannerInstance> instances = ConcurrentHashMap.newKeySet();
-    @Value("${scanner-instances:1}")
+    private ScheduledExecutorService scheduledExecutorService;
+
+    @Value("${scanner-instances:30}")
     private int scannerInstanceCount;
+    @Value("${scanner-threads:5}")
+    private int scannerThreadsCount;
     @Value("${use-tor:false}")
     private boolean useTor;
 
@@ -36,10 +43,11 @@ public class MapManager implements SmartLifecycle {
         this.clientService = clientService;
     }
 
-
     @Override
     public void start() {
         running = true;
+
+        scheduledExecutorService = Executors.newScheduledThreadPool(scannerThreadsCount);
 
         for (int i = 0; i < scannerInstanceCount; i++) {
             createInstance();
@@ -55,7 +63,7 @@ public class MapManager implements SmartLifecycle {
 
         MapScannerInstance instance = new MapScannerInstance(id, this);
         instances.add(instance);
-        instance.start();
+        scheduledExecutorService.scheduleWithFixedDelay(instance, 0, 10, TimeUnit.SECONDS);
     }
 
 
