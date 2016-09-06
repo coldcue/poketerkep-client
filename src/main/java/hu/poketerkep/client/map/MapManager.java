@@ -3,13 +3,16 @@ package hu.poketerkep.client.map;
 import hu.poketerkep.client.map.scanner.MapScannerInstance;
 import hu.poketerkep.client.service.ClientService;
 import hu.poketerkep.client.service.UserService;
+import hu.poketerkep.client.tor.TorInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -24,34 +27,47 @@ public class MapManager implements SmartLifecycle {
 
     private final UserService userService;
     private final ClientService clientService;
+    private final TorInstanceManager torInstanceManager;
 
     // The running state of the Instance Manager
     private boolean running;
     private Set<MapScannerInstance> instances = ConcurrentHashMap.newKeySet();
     private ScheduledExecutorService scheduledExecutorService;
 
-    @Value("${scanner-instances:30}")
+    @Value("${scanner-instances:20}")
     private int scannerInstanceCount;
-    @Value("${scanner-threads:5}")
-    private int scannerThreadsCount;
     @Value("${use-tor:false}")
     private boolean useTor;
 
     @Autowired
-    public MapManager(UserService userService, ClientService clientService) {
+    public MapManager(UserService userService, ClientService clientService, TorInstanceManager torInstanceManager) {
         this.userService = userService;
         this.clientService = clientService;
+        this.torInstanceManager = torInstanceManager;
     }
 
     @Override
     public void start() {
-        running = true;
 
+        // Wait while tor is running
+        if (useTor) {
+            log.info("Waiting for tor...");
+            while (!torInstanceManager.isRunning()) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        // 10 user / scanner thread
+        int scannerThreadsCount = scannerInstanceCount / 10;
         scheduledExecutorService = Executors.newScheduledThreadPool(scannerThreadsCount);
-
         for (int i = 0; i < scannerInstanceCount; i++) {
             createInstance();
         }
+        running = true;
     }
 
     /**
@@ -73,6 +89,8 @@ public class MapManager implements SmartLifecycle {
     @Override
     public void stop() {
         running = false;
+
+        scheduledExecutorService.shutdown();
 
         log.info("Stopping instances...");
         instances.forEach(MapScannerInstance::shutdown);
@@ -131,7 +149,23 @@ public class MapManager implements SmartLifecycle {
         return userService;
     }
 
+    /**
+     * Get a random proxy
+     *
+     * @return
+     */
     public Proxy getProxy() {
-        return Proxy.NO_PROXY;
+        if (!useTor) {
+            return Proxy.NO_PROXY;
+        }
+
+        Optional<TorInstance> optional = torInstanceManager.getRandomTorInstance();
+
+        if (!optional.isPresent()) {
+            return Proxy.NO_PROXY;
+        } else {
+            TorInstance torInstance = optional.get();
+            return new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("localhost", torInstance.getProxyPort()));
+        }
     }
 }
