@@ -4,6 +4,7 @@ import hu.poketerkep.client.map.scanner.MapScannerInstance;
 import hu.poketerkep.client.service.ClientService;
 import hu.poketerkep.client.service.UserService;
 import hu.poketerkep.client.tor.TorInstance;
+import hu.poketerkep.shared.config.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
@@ -79,7 +80,7 @@ public class MapManager implements SmartLifecycle {
 
         MapScannerInstance instance = new MapScannerInstance(id, this);
         instances.add(instance);
-        scheduledExecutorService.scheduleWithFixedDelay(instance, 0, 10, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(instance, 0, Constants.SCAN_DELAY, TimeUnit.SECONDS);
     }
 
 
