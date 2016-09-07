@@ -3,10 +3,15 @@ package hu.poketerkep.client.map.scanner;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 import hu.poketerkep.client.map.MapManager;
+import hu.poketerkep.client.service.ClientService;
+import hu.poketerkep.client.service.ScanCoordinatesService;
+import hu.poketerkep.shared.config.Constants;
 import hu.poketerkep.shared.geo.Coordinate;
 import hu.poketerkep.shared.model.UserConfig;
 
 import java.net.Proxy;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -18,17 +23,29 @@ public class MapScannerInstance extends Thread {
     private final Logger log;
     private final int instanceId;
     private final MapManager mapManager;
-    private AtomicBoolean isShutdown = new AtomicBoolean(false);
-    private boolean isLoggedIn = false;
-    private boolean nextUserNeeded = true;
+
+    //Services
+    private final ScanCoordinatesService scanCoordinatesService;
+    private final ClientService clientService;
+
+    //Scanner
     private MapScannerWorker mapScannerWorker;
     private UserConfig userConfig;
+    private Instant usingUserSince;
+
+    //Flags
+    private boolean isLoggedIn = false;
+    private boolean nextUserNeeded = true;
+    private AtomicBoolean isShutdown = new AtomicBoolean(false);
 
     public MapScannerInstance(int instanceId, MapManager mapManager) {
         this.instanceId = instanceId;
         this.mapManager = mapManager;
 
         log = Logger.getLogger("MSI-" + instanceId);
+
+        scanCoordinatesService = mapManager.getScanCoordinatesService();
+        clientService = mapManager.getClientService();
     }
 
     public int getInstanceId() {
@@ -48,7 +65,7 @@ public class MapScannerInstance extends Thread {
                 }
 
                 // Create a worker
-                mapScannerWorker = new MapScannerWorker(userConfig, proxy, mapManager.getClientService(), log);
+                mapScannerWorker = new MapScannerWorker(userConfig, proxy, clientService, log);
 
                 log.info("Connecting to Niantic...");
                 mapScannerWorker.connect();
@@ -58,17 +75,15 @@ public class MapScannerInstance extends Thread {
 
             } else {
                 // Scan location
-                Optional<Coordinate> coordinateOptional = mapManager.getClientService().nextScanLocation();
+                Coordinate coordinate = scanCoordinatesService.poll();
 
-                if (!coordinateOptional.isPresent()) {
-                    return;
-                }
-
-                log.info("Scanning location: " + coordinateOptional.get());
+                log.info("Scanning location: " + coordinate);
 
                 try {
-                    mapScannerWorker.scan(coordinateOptional.get());
+                    mapScannerWorker.scan(coordinate);
                 } catch (Exception e) {
+                    //Put back the coordinate if it was unsuccessful
+                    scanCoordinatesService.push(coordinate);
                     log.warning("Scanning was unsuccessful: " + e.getMessage());
                 }
             }
@@ -83,6 +98,20 @@ public class MapScannerInstance extends Thread {
         } catch (Exception e) {
             log.warning("Something bad happened: " + e.getMessage());
         }
+
+        checkUserExpire();
+    }
+
+    /**
+     * Check if a user is used for a given amount of time, this is because of user over usage
+     */
+    private void checkUserExpire() {
+        Instant instant = usingUserSince.plus(Duration.ofSeconds(Constants.MAX_USED_USER_TIME_SECONDS));
+
+        if (isLoggedIn && !nextUserNeeded && usingUserSince != null && Instant.now().isAfter(instant)) {
+            log.info("User was expired: " + userConfig);
+            nextUserNeeded = true;
+        }
     }
 
     private boolean getNextUser() {
@@ -96,6 +125,7 @@ public class MapScannerInstance extends Thread {
         }
 
         userConfig = userConfigOptional.get();
+        usingUserSince = Instant.now();
         log.info("Using user: " + userConfig);
 
         //Reset flag

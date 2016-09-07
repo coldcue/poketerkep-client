@@ -20,7 +20,7 @@ public class TorInstanceManager implements SmartLifecycle {
     private Set<TorInstance> instances = ConcurrentHashMap.newKeySet();
     private Random random = new Random();
 
-    @Value("${scanner-instances:20}")
+    @Value("${scanner-instances}")
     private int scannerInstanceCount;
     @Value("${use-tor:false}")
     private boolean useTor;
@@ -40,8 +40,8 @@ public class TorInstanceManager implements SmartLifecycle {
     public void start() {
         if (useTor) {
 
-            // 20 user / tor
-            int torInstanceCount = scannerInstanceCount / 20;
+            // 10 user / tor
+            int torInstanceCount = scannerInstanceCount / 10;
 
             for (int i = 0; i < torInstanceCount; i++) {
                 TorInstance torInstance = new TorInstance(i);

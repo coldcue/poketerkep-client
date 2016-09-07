@@ -2,6 +2,7 @@ package hu.poketerkep.client.map;
 
 import hu.poketerkep.client.map.scanner.MapScannerInstance;
 import hu.poketerkep.client.service.ClientService;
+import hu.poketerkep.client.service.ScanCoordinatesService;
 import hu.poketerkep.client.service.UserService;
 import hu.poketerkep.client.tor.TorInstance;
 import hu.poketerkep.shared.config.Constants;
@@ -29,22 +30,24 @@ public class MapManager implements SmartLifecycle {
     private final UserService userService;
     private final ClientService clientService;
     private final TorInstanceManager torInstanceManager;
+    private final ScanCoordinatesService scanCoordinatesService;
 
     // The running state of the Instance Manager
     private boolean running;
     private Set<MapScannerInstance> instances = ConcurrentHashMap.newKeySet();
     private ScheduledExecutorService scheduledExecutorService;
 
-    @Value("${scanner-instances:20}")
+    @Value("${scanner-instances}")
     private int scannerInstanceCount;
     @Value("${use-tor:false}")
     private boolean useTor;
 
     @Autowired
-    public MapManager(UserService userService, ClientService clientService, TorInstanceManager torInstanceManager) {
+    public MapManager(UserService userService, ClientService clientService, TorInstanceManager torInstanceManager, ScanCoordinatesService scanCoordinatesService) {
         this.userService = userService;
         this.clientService = clientService;
         this.torInstanceManager = torInstanceManager;
+        this.scanCoordinatesService = scanCoordinatesService;
     }
 
     @Override
@@ -62,8 +65,8 @@ public class MapManager implements SmartLifecycle {
             }
         }
 
-        // 10 user / scanner thread
-        int scannerThreadsCount = scannerInstanceCount / 10;
+        // 15 user / scanner thread
+        int scannerThreadsCount = scannerInstanceCount / 15;
         scheduledExecutorService = Executors.newScheduledThreadPool(scannerThreadsCount);
         for (int i = 0; i < scannerInstanceCount; i++) {
             createInstance();
@@ -168,5 +171,9 @@ public class MapManager implements SmartLifecycle {
             TorInstance torInstance = optional.get();
             return new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("localhost", torInstance.getProxyPort()));
         }
+    }
+
+    public ScanCoordinatesService getScanCoordinatesService() {
+        return scanCoordinatesService;
     }
 }

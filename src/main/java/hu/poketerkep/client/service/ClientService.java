@@ -35,14 +35,4 @@ public class ClientService {
         }
         return Optional.empty();
     }
-
-    public Optional<Coordinate> nextScanLocation() {
-        Optional<Collection<Coordinate>> optional = nextScanLocations(1);
-
-        if (optional.isPresent()) {
-            return Optional.of(optional.get().iterator().next());
-        }
-
-        return Optional.empty();
-    }
 }
