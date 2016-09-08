@@ -66,7 +66,9 @@ public class MapManager implements SmartLifecycle {
         }
 
         // 15 user / scanner thread
-        int scannerThreadsCount = scannerInstanceCount / 15;
+        int scannerThreadsCount = scannerInstanceCount / Constants.CLIENTS_PER_THREAD;
+        if (scannerThreadsCount == 0) scannerThreadsCount = 1;
+
         scheduledExecutorService = Executors.newScheduledThreadPool(scannerThreadsCount);
         for (int i = 0; i < scannerInstanceCount; i++) {
             createInstance();
