@@ -1,8 +1,8 @@
 package hu.poketerkep.client.map;
 
 
+import hu.poketerkep.client.config.LocalConstants;
 import hu.poketerkep.client.tor.TorInstance;
-import hu.poketerkep.shared.config.Constants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
@@ -41,8 +41,10 @@ public class TorInstanceManager implements SmartLifecycle {
     public void start() {
         if (useTor) {
 
+            running = true;
+
             // 10 user / tor
-            int torInstanceCount = scannerInstanceCount / Constants.CLIENTS_PER_TOR;
+            int torInstanceCount = scannerInstanceCount / LocalConstants.CLIENTS_PER_TOR;
             if (torInstanceCount == 0) torInstanceCount = 1;
 
             for (int i = 0; i < torInstanceCount; i++) {
@@ -50,7 +52,7 @@ public class TorInstanceManager implements SmartLifecycle {
                 instances.add(torInstance);
                 torInstance.start();
             }
-            running = true;
+
         }
     }
 

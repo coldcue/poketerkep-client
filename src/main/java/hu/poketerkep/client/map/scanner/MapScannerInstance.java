@@ -2,10 +2,10 @@ package hu.poketerkep.client.map.scanner;
 
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
+import hu.poketerkep.client.config.LocalConstants;
 import hu.poketerkep.client.map.MapManager;
 import hu.poketerkep.client.service.ClientService;
 import hu.poketerkep.client.service.ScanCoordinatesService;
-import hu.poketerkep.shared.config.Constants;
 import hu.poketerkep.shared.geo.Coordinate;
 import hu.poketerkep.shared.model.UserConfig;
 
@@ -32,6 +32,7 @@ public class MapScannerInstance extends Thread {
     private MapScannerWorker mapScannerWorker;
     private UserConfig userConfig;
     private Instant usingUserSince;
+    private MapScannerHealth mapScannerHealth;
 
     //Flags
     private boolean isLoggedIn = false;
@@ -46,6 +47,8 @@ public class MapScannerInstance extends Thread {
 
         scanCoordinatesService = mapManager.getScanCoordinatesService();
         clientService = mapManager.getClientService();
+
+        mapScannerHealth = new MapScannerHealth(this);
     }
 
     public int getInstanceId() {
@@ -81,9 +84,11 @@ public class MapScannerInstance extends Thread {
 
                 try {
                     mapScannerWorker.scan(coordinate);
+                    mapScannerHealth.onSuccess();
                 } catch (Exception e) {
                     //Put back the coordinate if it was unsuccessful
                     scanCoordinatesService.push(coordinate);
+                    mapScannerHealth.onError();
                     log.warning("Scanning was unsuccessful: " + e.getMessage());
                 }
             }
@@ -97,6 +102,7 @@ public class MapScannerInstance extends Thread {
             log.info("Server is busy");
         } catch (Exception e) {
             log.warning("Something bad happened: " + e.getMessage());
+            mapScannerHealth.onError();
         }
 
         checkUserExpire();
@@ -106,7 +112,7 @@ public class MapScannerInstance extends Thread {
      * Check if a user is used for a given amount of time, this is because of user over usage
      */
     private void checkUserExpire() {
-        Instant instant = usingUserSince.plus(Duration.ofSeconds(Constants.MAX_USED_USER_TIME_SECONDS));
+        Instant instant = usingUserSince.plus(Duration.ofSeconds(LocalConstants.MAX_USED_USER_TIME_SECONDS));
 
         if (isLoggedIn && !nextUserNeeded && usingUserSince != null && Instant.now().isAfter(instant)) {
             log.info("User was expired: " + userConfig);
@@ -131,10 +137,17 @@ public class MapScannerInstance extends Thread {
         //Reset flag
         nextUserNeeded = false;
 
+        //Reset health
+        mapScannerHealth = new MapScannerHealth(this);
+
         return true;
     }
 
     public void shutdown() {
         isShutdown.set(true);
+    }
+
+    public void setNextUserNeeded(boolean nextUserNeeded) {
+        this.nextUserNeeded = nextUserNeeded;
     }
 }
