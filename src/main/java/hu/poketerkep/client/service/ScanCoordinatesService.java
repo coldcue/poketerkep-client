@@ -31,7 +31,8 @@ public class ScanCoordinatesService {
     private synchronized void refillQueue() {
         if (coordinates.size() == 0) {
             log.warning("Getting new coordinates from master...");
-            Optional<Collection<Coordinate>> nextScanLocations = clientService.nextScanLocations(scannerInstanceCount);
+            int limit = this.scannerInstanceCount > 1000 ? 1000 : this.scannerInstanceCount;
+            Optional<Collection<Coordinate>> nextScanLocations = clientService.nextScanLocations(limit);
             if (!nextScanLocations.isPresent()) {
                 log.warning("Cannot get new coordinates");
             } else {

@@ -95,7 +95,7 @@ public class MapScannerInstance extends Thread {
 
         } catch (LoginFailedException e) {
             log.warning("Cannot log in with user :" + userConfig + ", it is banned");
-            mapManager.getUserService().banUser(userConfig);
+            //mapManager.getUserService().banUser(userConfig); // do not ban, because it is not banned
             isLoggedIn = false;
             nextUserNeeded = true;
         } catch (RemoteServerException e) {
