@@ -28,7 +28,7 @@ public class UserService {
                 return Optional.of(userConfigResponseEntity.getBody());
             }
         } catch (Exception e) {
-            log.warning("Cannot get next user");
+            log.warning("Cannot get next user: " + e.getMessage());
         }
 
         return Optional.empty();

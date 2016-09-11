@@ -1,7 +1,6 @@
 package hu.poketerkep.client.map.scanner;
 
 import com.pokegoapi.api.PokemonGo;
-import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -33,7 +32,7 @@ class MapScannerWorker {
 
         okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
-                .retryOnConnectionFailure(true)
+                .retryOnConnectionFailure(false)
                 .proxy(proxy)
                 .build();
         this.clientService = clientService;
@@ -41,6 +40,7 @@ class MapScannerWorker {
     }
 
     void connect() throws LoginFailedException, RemoteServerException {
+        log.info("Connecting with user: " + userConfig.getUserName());
         pokemonGo = new PokemonGo(okHttpClient);
 
         String userName = userConfig.getUserName();
@@ -49,9 +49,9 @@ class MapScannerWorker {
         pokemonGo.login(new PtcCredentialProvider(okHttpClient, userName, password));
 
         //TODO Enable profile automatically
-        PlayerProfile playerProfile = pokemonGo.getPlayerProfile();
-        playerProfile.activateAccount();
-        playerProfile.updateProfile();
+        //PlayerProfile playerProfile = pokemonGo.getPlayerProfile();
+        //playerProfile.activateAccount();
+        //playerProfile.updateProfile();
     }
 
     void scan(Coordinate location) throws LoginFailedException, RemoteServerException {

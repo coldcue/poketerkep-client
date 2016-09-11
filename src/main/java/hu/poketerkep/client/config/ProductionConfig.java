@@ -12,6 +12,6 @@ public class ProductionConfig {
 
     @Bean(autowire = Autowire.BY_NAME)
     public String masterAPIEndpoint() {
-        return "http://poketerkep-master.eu-west-1.elasticbeanstalk.com";
+        return "http://master.poketerkep.hu";
     }
 }

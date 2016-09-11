@@ -41,8 +41,6 @@ public class TorInstanceManager implements SmartLifecycle {
     public void start() {
         if (useTor) {
 
-            running = true;
-
             // 10 user / tor
             int torInstanceCount = scannerInstanceCount / LocalConstants.CLIENTS_PER_TOR;
             if (torInstanceCount == 0) torInstanceCount = 1;
@@ -52,6 +50,8 @@ public class TorInstanceManager implements SmartLifecycle {
                 instances.add(torInstance);
                 torInstance.start();
             }
+
+            running = true;
 
         }
     }

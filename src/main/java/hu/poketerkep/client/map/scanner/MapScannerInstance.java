@@ -60,7 +60,7 @@ public class MapScannerInstance extends Thread {
         try {
             if (!isLoggedIn) {
                 Proxy proxy = mapManager.getProxy();
-                log.info("Using proxy: " + proxy);
+                log.fine("Using proxy: " + proxy);
 
                 // If next user is needed
                 if (nextUserNeeded) {
@@ -69,8 +69,6 @@ public class MapScannerInstance extends Thread {
 
                 // Create a worker
                 mapScannerWorker = new MapScannerWorker(userConfig, proxy, clientService, log);
-
-                log.info("Connecting to Niantic...");
                 mapScannerWorker.connect();
 
                 // Set logged in flag
@@ -132,7 +130,6 @@ public class MapScannerInstance extends Thread {
 
         userConfig = userConfigOptional.get();
         usingUserSince = Instant.now();
-        log.info("Using user: " + userConfig);
 
         //Reset flag
         nextUserNeeded = false;
