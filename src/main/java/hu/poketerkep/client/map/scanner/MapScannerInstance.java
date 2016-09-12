@@ -68,7 +68,7 @@ public class MapScannerInstance extends Thread {
                 }
 
                 // Create a worker
-                mapScannerWorker = new MapScannerWorker(userConfig, proxy, clientService, log);
+                mapScannerWorker = new MapScannerWorker(userConfig, mapManager.getMapCacheService(), log, proxy);
                 mapScannerWorker.connect();
 
                 // Set logged in flag

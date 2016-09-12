@@ -3,6 +3,7 @@ package hu.poketerkep.client.map;
 import hu.poketerkep.client.config.LocalConstants;
 import hu.poketerkep.client.map.scanner.MapScannerInstance;
 import hu.poketerkep.client.service.ClientService;
+import hu.poketerkep.client.service.MapCacheService;
 import hu.poketerkep.client.service.ScanCoordinatesService;
 import hu.poketerkep.client.service.UserService;
 import hu.poketerkep.client.tor.TorInstance;
@@ -31,6 +32,7 @@ public class MapManager implements SmartLifecycle {
     private final ClientService clientService;
     private final TorInstanceManager torInstanceManager;
     private final ScanCoordinatesService scanCoordinatesService;
+    private final MapCacheService mapCacheService;
 
     // The running state of the Instance Manager
     private boolean running;
@@ -43,11 +45,12 @@ public class MapManager implements SmartLifecycle {
     private boolean useTor;
 
     @Autowired
-    public MapManager(UserService userService, ClientService clientService, TorInstanceManager torInstanceManager, ScanCoordinatesService scanCoordinatesService) {
+    public MapManager(UserService userService, ClientService clientService, TorInstanceManager torInstanceManager, ScanCoordinatesService scanCoordinatesService, MapCacheService mapCacheService) {
         this.userService = userService;
         this.clientService = clientService;
         this.torInstanceManager = torInstanceManager;
         this.scanCoordinatesService = scanCoordinatesService;
+        this.mapCacheService = mapCacheService;
     }
 
     @Override
@@ -177,5 +180,9 @@ public class MapManager implements SmartLifecycle {
 
     public ScanCoordinatesService getScanCoordinatesService() {
         return scanCoordinatesService;
+    }
+
+    public MapCacheService getMapCacheService() {
+        return mapCacheService;
     }
 }

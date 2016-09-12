@@ -7,4 +7,5 @@ public class LocalConstants {
     public static final long SCAN_DELAY = 12;
     public static final int CLIENTS_PER_TOR = 20;
     public static final int CLIENTS_PER_THREAD = 10;
+    public static final long SEND_POKEMONS_TO_MASTER_RATE = 10 * 1000;
 }

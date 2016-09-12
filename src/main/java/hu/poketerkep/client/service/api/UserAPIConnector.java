@@ -2,10 +2,14 @@ package hu.poketerkep.client.service.api;
 
 import hu.poketerkep.shared.api.UserAPIEndpoint;
 import hu.poketerkep.shared.model.UserConfig;
+import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @Component
 public class UserAPIConnector implements UserAPIEndpoint {
@@ -19,8 +23,15 @@ public class UserAPIConnector implements UserAPIEndpoint {
     }
 
     @Override
-    public ResponseEntity<UserConfig> nextUser() {
-        return restTemplate.getForEntity(masterAPIEndpoint + "/user/nextUser", UserConfig.class);
+    public ResponseEntity<UserConfig[]> nextUser(int limit) {
+        try {
+            URI uri = new URIBuilder(masterAPIEndpoint + "/user/nextUser")
+                    .addParameter("limit", String.valueOf(limit))
+                    .build();
+            return restTemplate.getForEntity(uri, UserConfig[].class);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

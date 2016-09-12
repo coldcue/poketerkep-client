@@ -2,7 +2,7 @@ package hu.poketerkep.client.map.scanner;
 
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
-import hu.poketerkep.client.service.ClientService;
+import hu.poketerkep.client.service.MapCacheService;
 import hu.poketerkep.shared.geo.Coordinate;
 import hu.poketerkep.shared.model.Pokemon;
 import hu.poketerkep.shared.model.UserConfig;
@@ -16,14 +16,14 @@ import java.util.Random;
 import java.util.logging.Logger;
 
 class MockMapScannerWorker extends MapScannerWorker {
-    private final ClientService clientService;
+    private final MapCacheService mapCacheService;
     private final Logger log;
     private Random random = new Random();
 
-    MockMapScannerWorker(UserConfig userConfig, Proxy proxy, ClientService clientService, Logger log) {
-        super(userConfig, proxy, clientService, log);
-        this.clientService = clientService;
+    MockMapScannerWorker(UserConfig userConfig, MapCacheService mapCacheService, Logger log, Proxy proxy) {
+        super(userConfig, mapCacheService, log, proxy);
         this.log = log;
+        this.mapCacheService = mapCacheService;
     }
 
     @Override
@@ -53,7 +53,7 @@ class MockMapScannerWorker extends MapScannerWorker {
 //        pokemonsToAdd.add(pokemon);
 
         if (pokemonsToAdd.size() != 0) {
-            clientService.addPokemons(pokemonsToAdd);
+            mapCacheService.addPokemons(pokemonsToAdd);
 
             log.info("Adding " + pokemonsToAdd.size() + " pokemons");
         }

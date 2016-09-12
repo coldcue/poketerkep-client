@@ -4,7 +4,7 @@ import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
-import hu.poketerkep.client.service.ClientService;
+import hu.poketerkep.client.service.MapCacheService;
 import hu.poketerkep.client.support.UserConfigHelper;
 import hu.poketerkep.shared.geo.Coordinate;
 import hu.poketerkep.shared.model.Pokemon;
@@ -24,18 +24,18 @@ class MapScannerWorker {
     private final Logger log;
     private final UserConfig userConfig;
     private final OkHttpClient okHttpClient;
-    private final ClientService clientService;
+    private final MapCacheService mapCacheService;
     private PokemonGo pokemonGo;
 
-    MapScannerWorker(UserConfig userConfig, Proxy proxy, ClientService clientService, Logger log) {
+    MapScannerWorker(UserConfig userConfig, MapCacheService mapCacheService, Logger log, Proxy proxy) {
         this.userConfig = userConfig;
+        this.mapCacheService = mapCacheService;
 
         okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(false)
                 .proxy(proxy)
                 .build();
-        this.clientService = clientService;
         this.log = log;
     }
 
@@ -64,8 +64,8 @@ class MapScannerWorker {
                     .collect(Collectors.toList());
 
             if (pokemons.size() != 0) {
-                log.info("Adding " + pokemons.size() + " pokemons");
-                clientService.addPokemons(pokemons);
+                log.info("Found " + pokemons.size() + " pokemons");
+                mapCacheService.addPokemons(pokemons);
             }
 
 
